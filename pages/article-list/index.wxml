@@ -1,0 +1,14 @@
+<view class="article-page">
+  <minimal-back />
+  <view class="list-card">
+    <view class="section-title">心理文章列表</view>
+    <view class="section-subtitle">共 {{articleList.length}} 篇 · 点击卡片阅读原文</view>
+
+    <view wx:for="{{articleList}}" wx:key="id" class="article-item" data-item="{{item}}" bindtap="onArticleTap">
+      <view class="article-title">{{item.title}}</view>
+      <view class="article-source">{{item.source}}</view>
+      <view class="article-summary">{{item.description}}</view>
+    </view>
+    <view class="tips-text">提示：外部链接需在小程序后台配置业务域名。</view>
+  </view>
+</view>

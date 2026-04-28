@@ -1,0 +1,19 @@
+page {
+  background: #f7f8fa;
+  min-height: 100%;
+  --space-page-x: 15rpx;
+  --space-card-padding: 15rpx;
+  --space-block-gap: 15rpx;
+}
+
+.container {
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.06);
+}

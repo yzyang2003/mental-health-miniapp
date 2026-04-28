@@ -1,0 +1,51 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: demo
+  # 本地敏感配置优先从项目根目录 / 源码 resources / classpath 导入，便于 IDEA 直接运行时生效
+  config:
+    import: optional:file:./application-local.yml,optional:file:./src/main/resources/application-local.yml,optional:classpath:application-local.yml
+  datasource:
+    # 敏感信息请用环境变量或复制 application-local.yml.example 为 application-local.yml（勿提交）
+    # 密码勿写默认空占位：会与 application-local.yml 合并时产生歧义；未配置时由 local 文件或 SPRING_DATASOURCE_PASSWORD 提供
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/graduation_design?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      initialization-fail-timeout: -1
+
+mybatis-plus:
+  type-handlers-package: com.baomidou.mybatisplus.extension.handlers
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-change-me-use-env-in-production}
+  expiration: 604800000
+
+wx:
+  appid: ${WX_APPID:your-appid}
+  secret: ${WX_SECRET:your-secret}
+  # 仅本地联调：非空则绕过 code2session，使用固定 openid；生产务必留空或删除
+  mock-openid: ${WX_MOCK_OPENID:}
+
+ai:
+  api:
+    url: ${AI_API_URL:}
+    key: ${AI_API_KEY:}
+    model: ${AI_API_MODEL:}
+    # 速度优先参数（演示场景）：限制输出长度 + 适度降随机，减少尾部生成时间
+    max-tokens: ${AI_API_MAX_TOKENS:700}
+    temperature: ${AI_API_TEMPERATURE:0.4}

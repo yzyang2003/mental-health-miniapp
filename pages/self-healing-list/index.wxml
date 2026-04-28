@@ -1,0 +1,58 @@
+<view class="healing-page">
+  <minimal-back />
+
+  <view class="hero-card">
+    <view class="hero-title">自我疗愈</view>
+    <view class="hero-subtitle">按问题类型选择练习，跟随步骤完成一次小练习</view>
+  </view>
+
+  <view class="filter-card">
+    <view class="section-title title-center">问题类型</view>
+    <scroll-view class="tag-scroll" scroll-x enable-flex>
+      <view
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="tag-item {{selectedCategoryId === item.id ? 'tag-item-active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="selectCategory"
+      >
+        {{item.name}}
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="list-card">
+    <view class="list-header">
+      <view class="section-title title-center">练习列表</view>
+      <view class="summary-text">共 {{filteredExercises.length}} 项</view>
+    </view>
+
+    <view wx:if="{{!filteredExercises.length}}" class="empty-box">
+      <view class="empty-title">暂无练习</view>
+      <view class="empty-desc">该分类下暂时没有练习，可先试试其他分类。</view>
+    </view>
+
+    <view wx:else class="grid">
+      <view
+        wx:for="{{filteredExercises}}"
+        wx:key="id"
+        class="exercise-card"
+        data-id="{{item.id}}"
+        bindtap="openDetail"
+      >
+        <view class="card-top">
+          <view class="pill">{{item.categoryName}}</view>
+          <view wx:if="{{item.completed}}" class="done-badge">已完成</view>
+        </view>
+
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-desc">{{item.shortDesc}}</view>
+
+        <view class="card-footer">
+          <view class="meta-chip">{{item.durationText}}</view>
+          <view class="meta-chip ghost">{{item.stepCount}} 步</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

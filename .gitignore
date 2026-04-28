@@ -1,0 +1,34 @@
+/target/
+*.log
+.DS_Store
+
+# IDE / editor
+.idea/
+.vscode/
+.cursor/
+.tools/
+scripts/
+
+# local env / tools
+.sttvenv/
+.m2repo/
+
+# temp / generated
+.tmp/
+.snapshots/
+tmpfix/
+tmpreview/
+uploads/
+inference/__pycache__/
+
+# local config / secrets
+project.private.config.json
+src/main/resources/application-local.yml
+application-local.yml
+
+# thesis / local materials
+docs/
+
+# ad-hoc local files
+Untitled-*.txt
+test.py

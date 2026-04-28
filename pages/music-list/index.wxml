@@ -1,0 +1,39 @@
+<view class="music-page">
+  <minimal-back />
+
+  <view class="hero-card">
+    <view class="hero-title">音乐疗愈</view>
+    <view class="hero-subtitle">选一个场景歌单，复制链接到浏览器打开</view>
+  </view>
+
+  <view class="grid">
+    <view
+      wx:for="{{playlists}}"
+      wx:key="id"
+      class="playlist-card"
+      data-url="{{item.shareUrl}}"
+      bindtap="onCopyPlaylist"
+    >
+      <view class="cover-wrap">
+        <image
+          wx:if="{{item.coverImage && !item.coverFailed}}"
+          class="cover-img"
+          src="{{item.coverImage}}"
+          mode="aspectFill"
+          data-id="{{item.id}}"
+          binderror="onCoverError"
+        />
+        <view wx:else class="cover-placeholder"></view>
+      </view>
+      <view class="card-body">
+        <view class="card-title">{{item.categoryName}}</view>
+        <view class="card-desc">{{item.categoryDesc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="tips-card">
+    <view class="tips-title">使用说明</view>
+    <view class="tips-text">链接为第三方网页，需在手机浏览器中打开；若无法打开，请检查网络或稍后更换歌单链接。</view>
+  </view>
+</view>

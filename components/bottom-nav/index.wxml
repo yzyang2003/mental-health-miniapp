@@ -1,0 +1,13 @@
+<view class="bottom-nav {{isAndroid ? 'bottom-nav-android' : 'bottom-nav-ios'}}">
+  <view
+    wx:for="{{items}}"
+    wx:key="key"
+    class="nav-item {{current === item.key ? 'nav-item-active' : ''}}"
+    data-key="{{item.key}}"
+    data-path="{{item.path}}"
+    bindtap="handleNavigate"
+  >
+    <view class="nav-dot {{current === item.key ? 'nav-dot-active' : ''}}"></view>
+    <text class="nav-label">{{item.label}}</text>
+  </view>
+</view>

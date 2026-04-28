@@ -1,0 +1,27 @@
+<view class="history-page">
+  <minimal-back />
+  <view class="hero-card">
+    <view class="hero-title">我的测评记录</view>
+    <view class="hero-desc">这里会展示你历次心理测评的结果，方便你观察自己的状态变化。</view>
+  </view>
+
+  <view wx:if="{{loading && !historyList.length}}" class="empty-card">正在加载测评记录...</view>
+  <view wx:elif="{{!historyList.length}}" class="empty-card">你还没有心理测评记录</view>
+
+  <view wx:for="{{historyList}}" wx:key="id" class="history-card" data-id="{{item.id}}" bindtap="openResult">
+    <view wx:if="{{item.quizDemoBadge}}" class="history-demo-badge">{{item.quizDemoBadge}}</view>
+    <view class="history-title">{{item.questionnaireTitle}}</view>
+    <view class="history-score">
+      得分 {{item.score}}<text wx:if="{{item.maxScore}}"> / {{item.maxScore}}</text>
+      <text wx:if="{{item.scorePercent != null}}">（{{item.scorePercent}}%）</text>
+      · {{item.conclusion}}
+    </view>
+    <view wx:if="{{item.suggestionLines && item.suggestionLines.length}}" class="history-suggestions">
+      <view wx:for="{{item.suggestionLines}}" wx:for-item="line" wx:key="*this" class="history-line">· {{line}}</view>
+    </view>
+    <view wx:else class="history-suggestions">{{item.suggestions}}</view>
+    <view class="history-time">{{item.createTime}}</view>
+  </view>
+
+  <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+</view>

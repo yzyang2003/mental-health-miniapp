@@ -1,0 +1,114 @@
+<view class="profile-page">
+  <minimal-back />
+  <view class="profile-card profile-overview" wx:if="{{userInfo}}">
+    <view class="overview-row">
+      <image class="overview-avatar" src="{{profileForm.avatarUrl}}"></image>
+      <view class="overview-main">
+        <view class="overview-name">{{userInfo.nickName || '微信用户'}}</view>
+        <view class="overview-meta">{{userInfo.city || '未填写城市'}} · {{userInfo.gender === 1 ? '男' : userInfo.gender === 2 ? '女' : '未知'}}</view>
+        <view class="overview-hint">温柔记录，慢慢成长</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="profile-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">个人中心</view>
+        <view class="section-subtitle">常用入口：公告、测评记录、树洞发帖与小爱</view>
+      </view>
+    </view>
+    <view class="quick-grid">
+      <view
+        wx:for="{{featureCards}}"
+        wx:key="key"
+        class="quick-item tone-{{item.tone}}"
+        data-path="{{item.path}}"
+        bindtap="openFeature"
+      >
+        <view class="quick-item-top">
+          <view class="quick-icon">{{item.iconText}}</view>
+          <view class="quick-chevron" aria-hidden="true">›</view>
+        </view>
+        <view class="quick-title">{{item.title}}</view>
+        <view class="quick-desc">{{item.shortDesc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="profile-card toggle-card" bindtap="toggleProfileEdit">
+    <view class="toggle-row">
+      <text class="toggle-label">编辑个人资料</text>
+      <text class="toggle-icon">{{showProfileEdit ? '收起' : '展开'}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showProfileEdit}}" class="profile-card">
+    <view class="avatar-row">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar" src="{{profileForm.avatarUrl}}"></image>
+      </button>
+      <view class="avatar-tip">点击头像更新</view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">昵称</text>
+      <input
+        class="input"
+        type="nickname"
+        placeholder="请输入昵称"
+        value="{{profileForm.nickName}}"
+        bindinput="onNicknameInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="label">地区</text>
+      <picker mode="region" value="{{profileForm.region}}" bindchange="onRegionChange">
+        <view class="picker-value">
+          {{profileForm.region[0] || '请选择省份'}} {{profileForm.region[1] || ''}} {{profileForm.region[2] || ''}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">性别</text>
+      <picker range="{{['未知', '男', '女']}}" value="{{profileForm.gender}}" bindchange="onGenderChange">
+        <view class="picker-value">
+          {{profileForm.gender === '1' ? '男' : profileForm.gender === '2' ? '女' : '未知'}}
+        </view>
+      </picker>
+    </view>
+
+    <button class="save-btn" type="primary" loading="{{loading}}" disabled="{{loading}}" bindtap="saveProfile">
+      保存资料
+    </button>
+
+    <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+    <view wx:if="{{successMessage}}" class="success-box">{{successMessage}}</view>
+  </view>
+
+  <view wx:if="{{userInfo}}" class="profile-card toggle-card" bindtap="toggleAccountPanel">
+    <view class="toggle-row">
+      <text class="toggle-label">账号与安全</text>
+      <text class="toggle-icon">{{showAccountPanel ? '收起' : '展开'}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{userInfo && showAccountPanel}}" class="profile-card account-card">
+    <view class="info-row">
+      <text class="info-label">OpenID（勿外泄）</text>
+      <text class="info-value info-muted">{{userInfo.openid}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">注册时间</text>
+      <text class="info-value">{{userInfo.createTime || '-'}}</text>
+    </view>
+  </view>
+
+  <view class="profile-card logout-card">
+    <button class="logout-btn" bindtap="handleLogout">退出登录</button>
+  </view>
+
+  <bottom-nav current="profile"></bottom-nav>
+</view>

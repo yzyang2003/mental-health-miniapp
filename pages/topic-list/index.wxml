@@ -1,0 +1,156 @@
+<view class="container {{mineOnly ? 'container-mine' : ''}}">
+  <minimal-back />
+  <view class="topic-hero-card">
+    <view class="topic-hero-title">{{heroTitle}}</view>
+    <view class="topic-hero-desc">{{heroDesc}}</view>
+  </view>
+  <view class="card list-card">
+    <view class="list-header">
+      <view class="section-title list-title">{{listTitle}}</view>
+      <view class="summary-text list-total-right">共 {{total}} 条</view>
+    </view>
+
+    <view wx:if="{{loading && !topicList.length}}" class="empty-text">正在加载帖子...</view>
+    <view wx:elif="{{!topicList.length}}" class="empty-text">{{emptyHint}}</view>
+
+    <view wx:for="{{topicList}}" wx:key="id" class="topic-item" data-topic-id="{{item.id}}" bindtap="openTopicDetail">
+      <view class="topic-top">
+        <view class="topic-title-wrap">
+          <text class="topic-publisher">{{item.publisherName}}</text>
+          <view class="reply-count-badge">回复 {{item.replyCount || 0}}</view>
+        </view>
+        <text class="topic-time">{{item.createTime}}</text>
+      </view>
+      <view class="topic-content">{{item._displayContent}}</view>
+      <view
+        wx:if="{{item._isLongContent}}"
+        class="content-toggle"
+        data-topic-id="{{item.id}}"
+        bindtap="openTopicDetail"
+      >
+        展开全文
+      </view>
+      <view wx:if="{{item.images && item.images.length}}" class="topic-image-list">
+        <view wx:for="{{item.images}}" wx:for-item="imgUrl" wx:key="*this" class="topic-image-item">
+          <image
+            class="topic-image"
+            src="{{imgUrl}}"
+            mode="aspectFill"
+            data-current="{{imgUrl}}"
+            data-urls="{{item.images}}"
+            catchtap="previewTopicImages"
+          ></image>
+        </view>
+      </view>
+      <view class="topic-footer">
+        <text class="topic-meta">{{item.anonymous ? '匿名发布' : '实名发布'}}</text>
+        <view class="topic-actions" catchtap="noop">
+          <text class="topic-action-link topic-action-detail" data-topic-id="{{item.id}}" bindtap="openTopicDetail">查看详情</text>
+          <text
+            wx:if="{{item.canDelete}}"
+            class="topic-action-link topic-action-delete"
+            data-topic-id="{{item.id}}"
+            catchtap="deleteTopic"
+          >删除</text>
+        </view>
+      </view>
+    </view>
+
+    <button
+      wx:if="{{topicList.length && page < pages}}"
+      class="default-btn"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+      bindtap="loadMoreTopics"
+    >
+      加载更多
+    </button>
+  </view>
+
+  <view
+    wx:if="{{!mineOnly}}"
+    class="floating-composer"
+    style="{{keyboardHeight > 0 ? ('bottom: ' + keyboardHeight + 'px;') : ''}}"
+  >
+    <view wx:if="{{floatingNotice}}" class="floating-notice">{{floatingNotice}}</view>
+    <view wx:if="{{topicForm.images && topicForm.images.length}}" class="topic-image-list topic-image-list-editor">
+      <view wx:for="{{topicForm.images}}" wx:for-item="imgUrl" wx:key="*this" class="topic-image-item topic-image-item-editor">
+        <image
+          class="topic-image"
+          src="{{imgUrl}}"
+          mode="aspectFill"
+          data-current="{{imgUrl}}"
+          data-urls="{{topicForm.images}}"
+          bindtap="previewPublishImages"
+        ></image>
+        <view class="topic-image-remove" data-index="{{index}}" catchtap="removeTopicImage">×</view>
+      </view>
+    </view>
+    <textarea
+      class="topic-textarea"
+      style="height: {{topicTextareaHeightRpx}}rpx;"
+      placeholder="发布树洞"
+      placeholder-class="topic-placeholder"
+      maxlength="{{topicContentLimit}}"
+      auto-height="{{false}}"
+      show-confirm-bar="{{false}}"
+      adjust-position="{{false}}"
+      value="{{topicForm.content}}"
+      focus="{{topicInputFocus}}"
+      cursor="{{topicCursor}}"
+      disabled="{{publishing}}"
+      bindinput="onTopicContentInput"
+      bindfocus="onTopicInputFocus"
+      bindblur="onTopicInputBlur"
+      bindkeyboardheightchange="onTopicKeyboardHeightChange"
+    />
+    <view class="topic-toolbar">
+      <view
+        class="toolbar-mode-toggle {{topicForm.anonymous ? 'toolbar-mode-toggle-active' : ''}}"
+        bindtap="toggleAnonymous"
+      >
+        匿名
+      </view>
+      <view class="topic-toolbar-right">
+        <image
+          class="toolbar-icon-entry {{publishing ? 'toolbar-btn-disabled' : ''}}"
+          src="/assets/icons/emoji-entry.svg"
+          mode="aspectFit"
+          bindtap="toggleEmojiPicker"
+        ></image>
+        <image
+          class="toolbar-icon-entry {{(publishing || uploadingImages) ? 'toolbar-btn-disabled' : ''}}"
+          src="/assets/icons/image-entry.svg"
+          mode="aspectFit"
+          bindtap="chooseTopicImages"
+        ></image>
+        <view
+          class="toolbar-publish-btn {{publishing ? 'toolbar-btn-disabled' : ''}}"
+          bindtap="publishTopic"
+        >{{publishing ? '…' : '↑'}}</view>
+      </view>
+    </view>
+    <view wx:if="{{emojiPickerVisible}}" class="emoji-panel">
+      <view class="emoji-panel-title">表情库</view>
+      <view class="emoji-grid">
+        <view
+          wx:for="{{emojiStickers}}"
+          wx:key="id"
+          class="emoji-item"
+          data-src="{{item.src}}"
+          bindtap="appendEmojiSticker"
+        >
+          <image class="emoji-item-img" src="{{item.src}}" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+    <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+  </view>
+
+  <view wx:if="{{mineOnly}}" class="mine-float-bar">
+    <view class="mine-float-text">个人中心入口 · 仅展示我的发帖</view>
+    <view class="mine-float-action" bindtap="openCommunityTopicList">去树洞</view>
+  </view>
+
+  <bottom-nav wx:if="{{!mineOnly}}" current="topic"></bottom-nav>
+</view>

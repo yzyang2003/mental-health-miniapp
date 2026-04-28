@@ -1,0 +1,57 @@
+<view class="detail-page">
+  <minimal-back />
+  <view
+    wx:if="{{submitting}}"
+    class="submit-overlay"
+    catchtouchmove="preventTouchMove"
+  >
+    <view class="submit-overlay-inner">
+      <view class="submit-spinner" aria-hidden="true"></view>
+      <view class="submit-overlay-title">正在生成测评报告</view>
+      <view class="submit-overlay-desc">正在计算得分并生成解读；若已配置大模型，生成 AI 指导可能需要十余秒，请稍候。</view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading && !detail}}" class="empty-text">正在加载问卷详情...</view>
+  <view wx:elif="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+
+  <view wx:if="{{detail}}" class="card">
+    <view wx:if="{{detail.quizDemoBadge}}" class="demo-banner">
+      <text class="demo-banner-title">{{detail.quizDemoBadge}}</text>
+      <text class="demo-banner-text">划界为演示规则，结果仅供自助参考，不可替代诊疗。</text>
+    </view>
+    <view class="quiz-title">{{detail.title}}</view>
+    <view class="quiz-desc">{{detail.description || '暂无问卷描述'}}</view>
+
+    <view wx:for="{{detail.questions}}" wx:key="id" class="question-item" wx:for-item="question" wx:for-index="questionIndex">
+      <view class="question-title">{{questionIndex + 1}}. {{question.content}}</view>
+      <view
+        wx:for="{{question.options}}"
+        wx:key="optionIndex"
+        wx:for-item="option"
+        wx:for-index="optionIndex"
+        class="option-item {{selectedAnswers[question.id] === optionIndex ? 'option-item-active' : ''}}"
+        data-question-id="{{question.id}}"
+        data-option-index="{{optionIndex}}"
+        bindtap="selectOption"
+      >
+        <view class="option-text">{{option.text}}</view>
+      </view>
+    </view>
+
+    <button
+      wx:if="{{detail && detail.type === 'SCL90_DEMO'}}"
+      class="quick-fill-btn"
+      disabled="{{submitting}}"
+      bindtap="fillAllMiddle"
+    >一键填充（测试）：全部选中等</button>
+
+    <button
+      class="submit-btn"
+      type="primary"
+      loading="{{submitting}}"
+      disabled="{{submitting}}"
+      bindtap="submitQuiz"
+    >提交并查看结果</button>
+  </view>
+</view>

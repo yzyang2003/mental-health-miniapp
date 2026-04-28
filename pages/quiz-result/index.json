@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "测评结果",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "minimal-back": "/components/minimal-back/index"
+  }
+}

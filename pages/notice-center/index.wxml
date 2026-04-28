@@ -1,0 +1,17 @@
+<view class="notice-page">
+  <minimal-back />
+  <view class="hero-card">
+    <view class="hero-title">公告通知中心</view>
+    <view class="hero-desc">系统公告、活动消息、版本变更和后续平台通知会逐步汇总到这里。</view>
+  </view>
+
+  <view wx:if="{{!notices.length}}" class="notice-empty">
+    <text class="notice-empty-text">暂无公告，后续通知将展示在这里。</text>
+  </view>
+
+  <view wx:for="{{notices}}" wx:key="id" class="notice-card">
+    <view class="notice-title">{{item.title}}</view>
+    <view class="notice-content">{{item.content}}</view>
+    <view class="notice-time">{{item.createTime}}</view>
+  </view>
+</view>

@@ -1,0 +1,117 @@
+<view
+  class="chat-page"
+  style="padding-top: {{navTop}}px; padding-bottom: {{bottomSafeInset}}px; padding-left: {{sideInsetPx}}px; padding-right: {{sideInsetPx}}px;"
+>
+  <minimal-back />
+  <view class="chat-shell" style="border-radius: {{shellRadiusPx}}px;">
+    <view class="chat-content">
+      <view wx:if="{{!loading && !historyLoadFailed && !historyList.length && !sending && !isTyping}}" class="welcome-card {{guideClosing ? 'welcome-card-closing' : ''}}" style="margin-top: {{historyTopSafePx}}px;">
+        <view class="welcome-title">温柔聊一聊</view>
+        <view class="welcome-desc">慢慢说，我在听。也可点推荐问题。</view>
+        <view class="prompt-grid">
+          <view
+            wx:for="{{quickPrompts}}"
+            wx:key="index"
+            class="prompt-chip {{sending || isTyping || guideClosing ? 'prompt-chip-disabled' : ''}}"
+            data-prompt="{{item}}"
+            bindtap="useQuickPrompt"
+          >
+            {{item}}
+          </view>
+        </view>
+      </view>
+
+      <scroll-view
+        class="chat-history"
+        scroll-y
+        enhanced
+        bounces="{{false}}"
+        show-scrollbar="false"
+        lower-threshold="{{scrollLowerThreshold}}"
+        bindscroll="onHistoryScroll"
+        bindscrolltolower="onHistoryScrollToLower"
+        bindtouchstart="onChatScrollTouchStart"
+        bindtouchend="onChatScrollTouchEnd"
+        bindtouchcancel="onChatScrollTouchEnd"
+        scroll-top="{{historyScrollTop}}"
+        scroll-into-view="{{scrollIntoView}}"
+        scroll-with-animation="{{scrollWithAnimation}}"
+      >
+        <view class="chat-history-inner" style="padding-left: {{contentInsetPx}}px; padding-right: {{contentInsetPx}}px; padding-top: {{historyTopSafePx}}px;">
+          <view wx:if="{{loading && !historyList.length && !sending && !isTyping}}" class="empty-text">正在加载对话记录...</view>
+          <view wx:elif="{{historyLoadFailed && !historyList.length && !sending && !isTyping}}" class="empty-state">
+            <view class="empty-state-title">历史记录加载失败</view>
+            <view class="empty-state-desc">{{errorMessage || '网络有点不稳定，请稍后再试。'}}</view>
+            <button class="empty-state-btn" size="mini" bindtap="reloadHistory">重新加载</button>
+          </view>
+          <view wx:elif="{{!historyList.length && !sending && !isTyping && guideClosing}}" class="empty-text">正在准备对话...</view>
+
+          <view wx:for="{{historyList}}" wx:key="id" id="{{item.anchorId}}" class="message-row message-row-{{item.role}}">
+            <view class="message-bubble message-bubble-{{item.role}} {{item.status === 'error' ? 'message-bubble-error' : ''}}">
+              <view class="message-role">{{item.role === 'assistant' ? '小爱' : '我'}}</view>
+              <view wx:if="{{item.status === 'thinking'}}" class="thinking-text">正在思考中...</view>
+              <view wx:if="{{item.status === 'thinking'}}" class="thinking-dots">
+                <view class="thinking-dot"></view>
+                <view class="thinking-dot"></view>
+                <view class="thinking-dot"></view>
+              </view>
+              <view wx:else class="message-content {{item.status === 'error' ? 'message-content-error' : ''}}">
+                {{item.content}}<text wx:if="{{item.status === 'typing'}}" class="typing-cursor">|</text>
+              </view>
+              <view wx:if="{{item.status === 'error'}}" class="message-error-tip">可直接点击上方重试继续。</view>
+              <view wx:if="{{item.createTime}}" class="message-time">{{item.createTime}}</view>
+            </view>
+          </view>
+
+          <view class="chat-bottom-spacer" style="height: {{bottomSpacerPx}}px;"></view>
+          <view id="chat-bottom" class="chat-bottom-anchor"></view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="composer-wrapper" style="bottom: {{keyboardHeight}}px; margin-top: {{contentInsetPx}}px; padding-left: {{contentInsetPx}}px; padding-right: {{contentInsetPx}}px; padding-bottom: {{contentInsetPx}}px;">
+      <view wx:if="{{errorMessage && !(historyLoadFailed && !historyList.length)}}" class="error-box">{{errorMessage}}</view>
+
+      <view wx:if="{{lastFailedMessage}}" class="retry-bar">
+        <text class="retry-text">上一条消息发送失败，可直接重试。</text>
+        <button class="retry-btn" size="mini" disabled="{{sending || isTyping}}" bindtap="retryLastMessage">重试发送</button>
+      </view>
+
+      <view class="composer-card">
+        <textarea
+          class="message-input"
+          placeholder="说说此刻心情..."
+          placeholder-class="message-input-placeholder"
+          maxlength="500"
+          auto-height
+          show-confirm-bar="{{false}}"
+          adjust-position="{{false}}"
+          cursor-spacing="24"
+          value="{{message}}"
+          disabled="{{sending}}"
+          bindinput="onMessageInput"
+          bindlinechange="onInputLineChange"
+          bindfocus="onInputFocus"
+          bindblur="onInputBlur"
+          bindkeyboardheightchange="onKeyboardHeightChange"
+        />
+
+        <view class="composer-toolbar">
+          <view class="composer-new-chat-btn" bindtap="startNewChat">
+          新对话
+          </view>
+          <view
+            wx:if="{{sending || isTyping}}"
+            class="send-circle-btn stop-circle-btn"
+            bindtap="stopOutput"
+          >
+            <view class="stop-center-dot"></view>
+          </view>
+          <view wx:else class="send-circle-btn" bindtap="sendMessage">
+            ↑
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

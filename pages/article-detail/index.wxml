@@ -1,0 +1,51 @@
+<view class="detail-page">
+  <minimal-back />
+  <view wx:if="{{loading && !detail}}" class="empty-text">正在加载文章详情...</view>
+  <view wx:elif="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+
+  <view wx:if="{{detail}}" class="detail-card">
+    <image wx:if="{{detail.cover}}" class="detail-cover" src="{{detail.cover}}" mode="aspectFill"></image>
+    <view class="detail-title">{{detail.title}}</view>
+    <view class="detail-summary">{{detail.summary || '暂无摘要'}}</view>
+
+    <view wx:if="{{detail.tags && detail.tags.length}}" class="tag-list">
+      <text wx:for="{{detail.tags}}" wx:key="*this" class="mini-tag">{{item}}</text>
+    </view>
+
+    <view wx:if="{{contentOutline.length}}" class="outline-card">
+      <view class="outline-title">阅读目录</view>
+      <view wx:for="{{contentOutline}}" wx:key="id" class="outline-item" data-index="{{item.index}}" bindtap="goParagraph">
+        {{item.text}}
+      </view>
+    </view>
+
+    <view wx:if="{{contentParagraphs.length}}" class="article-body">
+      <view wx:for="{{contentParagraphs}}" wx:key="index" id="paragraph-{{index}}" class="article-paragraph">{{item}}</view>
+    </view>
+    <view wx:elif="{{detail.content}}" class="article-body">
+      <view class="article-paragraph">{{detail.content}}</view>
+    </view>
+
+    <view class="info-row">
+      <text class="info-label">浏览次数</text>
+      <text class="info-value">{{detail.viewCount || 0}}</text>
+    </view>
+    <view wx:if="{{detail.contentUrl && detail.contentUrl !== '#inline'}}" class="info-row">
+      <text class="info-label">原文链接</text>
+      <button class="mini-copy-btn" size="mini" bindtap="copyContentUrl">复制链接</button>
+    </view>
+  </view>
+
+  <view wx:if="{{relatedArticles.length}}" class="detail-card">
+    <view class="outline-title">相关推荐</view>
+    <view wx:for="{{relatedArticles}}" wx:key="id" class="related-item" data-id="{{item.id}}" bindtap="openRelated">
+      <view class="related-title">{{item.title}}</view>
+      <view class="related-meta">浏览 {{item.viewCount || 0}}</view>
+    </view>
+  </view>
+
+  <view class="detail-card">
+    <view class="outline-title">下一步建议</view>
+    <button class="mini-action-btn" size="mini" bindtap="goToSelfHealing">去做一次自愈练习</button>
+  </view>
+</view>

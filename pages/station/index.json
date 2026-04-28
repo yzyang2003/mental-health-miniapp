@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "驿站",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "bottom-nav": "/components/bottom-nav/index",
+    "minimal-back": "/components/minimal-back/index"
+  }
+}

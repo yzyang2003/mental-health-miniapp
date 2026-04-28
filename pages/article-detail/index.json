@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "文章详情",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "minimal-back": "/components/minimal-back/index"
+  }
+}

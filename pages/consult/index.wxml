@@ -1,0 +1,37 @@
+<view class="consult-page">
+  <minimal-back />
+  <view class="hero-card">
+    <view class="hero-title">咨询支持中心</view>
+    <view class="hero-desc">在这里你可以先做心理测评，也可以和 AI 咨询师“小爱”对话，获得更及时的陪伴式支持。</view>
+  </view>
+
+  <view class="section-card">
+    <view class="section-title">功能分区</view>
+    <view
+      wx:for="{{modules}}"
+      wx:key="key"
+      class="module-item"
+      data-path="{{item.path}}"
+      bindtap="openModule"
+    >
+      <view class="module-title">{{item.title}}</view>
+      <view class="module-desc">{{item.desc}}</view>
+      <view wx:if="{{item.key === 'quiz' && questionnaireQuickList.length}}" class="quick-entry-wrap" catchtap="noop">
+        <view class="quick-entry-title">测评量表快捷入口</view>
+        <view
+          wx:for="{{questionnaireQuickList}}"
+          wx:key="id"
+          class="quick-entry-item"
+          data-id="{{item.id}}"
+          bindtap="openQuestionnaireQuickEntry"
+        >
+          <view class="quick-entry-item-title">{{item.title}}</view>
+          <view wx:if="{{item.coreNote}}" class="quick-entry-item-note">{{item.coreNote}}</view>
+        </view>
+      </view>
+      <view class="module-action">立即进入</view>
+    </view>
+  </view>
+
+  <bottom-nav current="consult"></bottom-nav>
+</view>

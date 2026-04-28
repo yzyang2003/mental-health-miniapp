@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "小爱",
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "usingComponents": {
+    "minimal-back": "/components/minimal-back/index"
+  }
+}

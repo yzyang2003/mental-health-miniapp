@@ -1,0 +1,8 @@
+<view
+  wx:if="{{canGoBack}}"
+  class="minimal-back"
+  style="top: {{topPx}}px; left: {{leftPx}}px; width: {{btnSizePx}}px; height: {{btnSizePx}}px; border-radius: {{radiusPx}}px;"
+  bindtap="handleBack"
+>
+  <text class="minimal-back-icon" style="font-size: {{iconSizePx}}px;">‹</text>
+</view>

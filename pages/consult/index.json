@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "咨询模块",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "bottom-nav": "/components/bottom-nav/index",
+    "minimal-back": "/components/minimal-back/index"
+  }
+}

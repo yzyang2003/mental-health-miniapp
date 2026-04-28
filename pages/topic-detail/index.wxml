@@ -1,0 +1,123 @@
+<view class="container">
+  <minimal-back />
+  <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+  <view wx:if="{{successMessage}}" class="success-box">{{successMessage}}</view>
+
+  <view class="card" wx:if="{{detail && detail.topic}}">
+    <view class="topic-top">
+      <view class="topic-title-wrap">
+        <text class="topic-publisher">{{detail.topic.publisherName}}</text>
+        <view class="reply-count-badge">回复 {{detail.topic.replyCount || 0}}</view>
+      </view>
+      <text class="topic-time">{{detail.topic._compactTime}}</text>
+    </view>
+    <view class="topic-content">{{detail.topic._displayContent}}</view>
+    <view wx:if="{{detail.topic.images && detail.topic.images.length}}" class="topic-image-list">
+      <view wx:for="{{detail.topic.images}}" wx:for-item="imgUrl" wx:key="*this" class="topic-image-item">
+        <image
+          class="topic-image"
+          src="{{imgUrl}}"
+          mode="aspectFill"
+          data-current="{{imgUrl}}"
+          data-urls="{{detail.topic.images}}"
+          bindtap="previewTopicImages"
+        ></image>
+      </view>
+    </view>
+    <view class="topic-footer">
+      <view class="topic-meta">{{detail.topic.anonymous ? '匿名发布' : '实名发布'}}</view>
+      <view class="topic-action-row">
+        <text class="topic-action-link topic-reply-link" bindtap="replyTopic">回复</text>
+        <text
+          wx:if="{{detail.topic.canDelete}}"
+          class="topic-action-link topic-delete-link"
+          bindtap="deleteTopic"
+        >删除帖子</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">全部回复</view>
+    <view wx:if="{{loading && (!detail || !detail.replyViewList || !detail.replyViewList.length)}}" class="empty-text">正在加载回复...</view>
+    <view wx:elif="{{!detail || !detail.replyViewList || !detail.replyViewList.length}}" class="empty-text">还没有回复，快来抢沙发吧</view>
+
+    <view
+      wx:for="{{detail.replyViewList}}"
+      wx:key="id"
+      class="reply-item {{item._isNested ? 'reply-item-nested' : ''}}"
+      style="margin-left: {{item._indentRpx}}rpx;"
+    >
+      <view wx:if="{{item._isNested}}" class="reply-thread-rail"></view>
+      <view class="reply-header">
+        <text class="reply-author">{{item.replierName}}</text>
+      </view>
+      <view class="reply-content">{{item._displayContent}}</view>
+      <text
+        wx:if="{{item._isRoot && (item._threadExpanded || item._childReplyCount > item._visibleChildCount)}}"
+        class="reply-thread-toggle"
+        data-root-id="{{item.id}}"
+        bindtap="toggleReplyThread"
+      >{{item._threadExpanded ? '收起回复' : '查看全部 ' + item._childReplyCount + ' 条回复'}}</text>
+      <view
+        wx:if="{{item._isLongContent}}"
+        class="content-toggle"
+        data-reply-id="{{item.id}}"
+        bindtap="toggleReplyContent"
+      >
+        {{item._expandedContent ? '收起' : '展开全文'}}
+      </view>
+      <view class="reply-actions">
+        <text class="reply-time">{{item._compactTime}}</text>
+        <view class="reply-action-right">
+          <text
+            class="reply-action-link reply-action-reply"
+            data-reply="{{item}}"
+            bindtap="setReplyTarget"
+          >回复</text>
+          <text
+            wx:if="{{item.canDelete}}"
+            class="reply-action-link reply-action-delete"
+            data-reply-id="{{item.id}}"
+            bindtap="deleteReply"
+          >删除</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="floating-composer" style="{{replyKeyboardHeight > 0 ? ('bottom: ' + replyKeyboardHeight + 'px;') : ''}}">
+    <textarea
+      class="topic-textarea"
+      style="height: {{replyTextareaHeightRpx}}rpx;"
+      placeholder="发布回复"
+      placeholder-class="topic-placeholder"
+      maxlength="1000"
+      auto-height="{{false}}"
+      show-confirm-bar="{{false}}"
+      adjust-position="{{false}}"
+      value="{{replyForm.content}}"
+      focus="{{replyInputFocus}}"
+      cursor="{{replyCursor}}"
+      disabled="{{publishing}}"
+      bindinput="onReplyContentInput"
+      bindfocus="onReplyInputFocus"
+      bindblur="onReplyInputBlur"
+      bindkeyboardheightchange="onReplyKeyboardHeightChange"
+    />
+    <view class="topic-toolbar">
+      <view
+        class="toolbar-mode-toggle {{replyForm.anonymous ? 'toolbar-mode-toggle-active' : ''}}"
+        bindtap="toggleAnonymous"
+      >
+        匿名
+      </view>
+      <view class="topic-toolbar-right">
+        <view
+          class="toolbar-publish-btn {{publishing ? 'toolbar-btn-disabled' : ''}}"
+          bindtap="publishReply"
+        >{{publishing ? '…' : '↑'}}</view>
+      </view>
+    </view>
+  </view>
+</view>

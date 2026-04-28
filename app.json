@@ -1,0 +1,31 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/station/index",
+    "pages/consult/index",
+    "pages/topic-list/index",
+    "pages/topic-detail/index",
+    "pages/profile/index",
+    "pages/notice-center/index",
+    "pages/my-quiz-history/index",
+    "pages/quiz-list/index",
+    "pages/quiz-detail/index",
+    "pages/quiz-result/index",
+    "pages/ai-chat/index",
+    "pages/article-list/index",
+    "pages/webview/index",
+    "pages/article-detail/index",
+    "pages/music-list/index",
+    "pages/self-healing-list/index",
+    "pages/self-healing-detail/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "毕业设计",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

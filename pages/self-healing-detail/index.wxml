@@ -1,0 +1,92 @@
+<view class="detail-page">
+  <minimal-back />
+
+  <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+
+  <view wx:if="{{detail}}" class="detail-card">
+    <view class="detail-title">{{detail.title}}</view>
+    <view class="detail-meta">
+      <text class="meta-pill">{{detail.categoryName}}</text>
+      <text class="meta-pill ghost">{{detail.durationText}}</text>
+    </view>
+
+    <view class="detail-desc">{{detail.shortDesc}}</view>
+
+    <view class="principle-card">
+      <view class="principle-header" bindtap="togglePrinciple">
+        <view class="principle-title">原理说明</view>
+        <view class="principle-toggle">{{principleExpanded ? '收起' : '展开'}}</view>
+      </view>
+      <view wx:if="{{principleExpanded}}" class="principle-body">{{detail.principle}}</view>
+    </view>
+
+    <view class="step-card">
+      <view class="step-header">
+        <view class="step-title">练习步骤</view>
+        <view class="step-count">步骤 {{activeStepIndex + 1}} / {{detail.steps.length}}</view>
+      </view>
+
+      <progress
+        wx:if="{{detail.steps.length}}"
+        class="step-progress"
+        percent="{{progressPercent}}"
+        stroke-width="6"
+        activeColor="#6eaa8a"
+        backgroundColor="#e5e7eb"
+      />
+
+      <scroll-view class="step-tabs" scroll-x enable-flex>
+        <view
+          wx:for="{{stepTabs}}"
+          wx:key="index"
+          class="{{item.tabClass}}"
+          data-index="{{item.index}}"
+          bindtap="selectStep"
+        >
+          {{item.label}}
+        </view>
+      </scroll-view>
+
+      <view wx:if="{{detail.steps && detail.steps.length}}" class="step-item">
+        <view class="step-index">步骤 {{activeStepIndex + 1}}</view>
+        <view class="step-name">{{detail.steps[activeStepIndex].title || '未命名步骤'}}</view>
+        <view class="step-desc">{{detail.steps[activeStepIndex].description || '暂无描述'}}</view>
+      </view>
+
+      <view class="action-row">
+        <button
+          class="action-btn mini-ghost-btn"
+          size="mini"
+          disabled="{{activeStepIndex === 0}}"
+          bindtap="prevStep"
+        >上一步</button>
+
+        <button
+          class="action-btn mini-action-btn"
+          size="mini"
+          disabled="{{finishStepDisabled}}"
+          bindtap="markStepDone"
+        >完成本步</button>
+
+        <button
+          wx:if="{{actionSlot3 === 'next'}}"
+          class="action-btn mini-ghost-btn"
+          size="mini"
+          disabled="{{nextDisabled}}"
+          bindtap="nextStep"
+        >下一步</button>
+
+        <button
+          wx:else
+          class="action-btn mini-action-btn primary-strong"
+          size="mini"
+          bindtap="completeExercise"
+        >完成练习</button>
+
+        <button class="action-btn mini-ghost-btn" size="mini" bindtap="restartPractice">重新练习</button>
+      </view>
+
+      <view wx:if="{{completionMessage}}" class="completion-box">{{completionMessage}}</view>
+    </view>
+  </view>
+</view>

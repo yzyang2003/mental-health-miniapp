@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "问卷测评",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "minimal-back": "/components/minimal-back/index"
+  }
+}

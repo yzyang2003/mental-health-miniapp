@@ -1,0 +1,24 @@
+<view class="station-page">
+  <minimal-back />
+  <view class="hero-card">
+    <view class="hero-title">心理驿站</view>
+    <view class="hero-desc">这里汇集了内容陪伴、音乐疗愈和自我练习三个方向，帮助你在小程序里形成完整的支持闭环。</view>
+  </view>
+
+  <view class="section-card">
+    <view class="section-title">功能分区</view>
+    <view
+      wx:for="{{modules}}"
+      wx:key="key"
+      class="module-item"
+      data-path="{{item.path}}"
+      bindtap="openModule"
+    >
+      <view class="module-title">{{item.title}}</view>
+      <view class="module-desc">{{item.desc}}</view>
+      <view class="module-action">立即进入</view>
+    </view>
+  </view>
+
+  <bottom-nav current="station"></bottom-nav>
+</view>

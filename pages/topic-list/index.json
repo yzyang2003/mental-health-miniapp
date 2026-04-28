@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "树洞广场",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "bottom-nav": "/components/bottom-nav/index",
+    "minimal-back": "/components/minimal-back/index"
+  }
+}

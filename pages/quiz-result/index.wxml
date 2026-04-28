@@ -1,0 +1,86 @@
+<view class="result-page">
+  <minimal-back />
+  <view wx:if="{{result}}" class="result-card">
+    <view class="result-title">{{result.questionnaireTitle || '测评结果'}}</view>
+    <view wx:if="{{result.quizDemoBadge}}" class="result-demo-tag">{{result.quizDemoBadge}}</view>
+    <view wx:elif="{{result.questionnaireType}}" class="result-type-tag">类型 {{result.questionnaireType}}</view>
+
+    <view class="score-block">
+      <view class="score-main">
+        <text class="score-num">{{result.score}}</text>
+        <text wx:if="{{result.maxScore}}" class="score-max">/ {{result.maxScore}}</text>
+      </view>
+      <view class="result-score-label">本次得分</view>
+    </view>
+
+    <view wx:if="{{result.scorePercent != null}}" class="percent-wrap">
+      <view class="percent-bar">
+        <view class="percent-fill" style="width: {{result.scorePercent}}%;"></view>
+      </view>
+      <view class="percent-text">约占总分 {{result.scorePercent}}%</view>
+    </view>
+
+    <view class="result-section">
+      <view class="section-label">结果等级</view>
+      <view class="section-content strong">{{result.conclusion}}</view>
+    </view>
+
+    <view wx:if="{{result.questionnaireType === 'SCL90_DEMO' && result.scl90Report}}" class="result-section scl90-overview-section">
+      <view class="section-label">总评估结果报告</view>
+      <view class="scl90-title">症状自评量表（SCL-90）测试结果</view>
+      <view class="scl90-score-main">{{result.scl90Report.totalScore}}</view>
+      <view class="scl90-score-level">{{result.scl90Report.totalLevel}}</view>
+      <view class="scl90-note">说明：{{result.scl90Report.overview}}</view>
+    </view>
+
+    <view wx:if="{{result.interpretation}}" class="result-section">
+      <view class="section-label">解读</view>
+      <view class="section-content">{{result.interpretation}}</view>
+    </view>
+
+    <view wx:if="{{result.suggestionLines && result.suggestionLines.length}}" class="result-section">
+      <view class="section-label">建议</view>
+      <view wx:for="{{result.suggestionLines}}" wx:key="*this" class="bullet-line">· {{item}}</view>
+    </view>
+
+    <view wx:elif="{{result.suggestions}}" class="result-section">
+      <view class="section-label">建议</view>
+      <view class="section-content">{{result.suggestions}}</view>
+    </view>
+
+    <view wx:if="{{result.aiGuidance}}" class="result-section ai-guidance-section">
+      <view class="section-label">AI 指导</view>
+      <view class="section-content ai-guidance-body">{{result.aiGuidance}}</view>
+      <button class="primary-btn ai-chat-btn" type="primary" bindtap="goToAi">和小爱聊聊</button>
+    </view>
+
+    <view wx:else class="result-section ai-guidance-fallback">
+      <view class="section-label">AI 指导</view>
+      <view class="section-content muted">当前为规则建议（AI 暂不可用或未配置大模型 API）。</view>
+      <button
+        class="retry-ai-btn"
+        size="mini"
+        loading="{{retryingAiGuidance}}"
+        disabled="{{retryingAiGuidance || retryCooldownSec > 0}}"
+        bindtap="retryAiGuidance"
+      >{{retryCooldownSec > 0 ? ('请 ' + retryCooldownSec + ' 秒后重试') : '重试生成 AI 指导'}}</button>
+      <button class="primary-btn ai-chat-btn" type="primary" bindtap="goToAi">和小爱聊聊</button>
+    </view>
+
+    <view class="disclaimer-box">
+      <text class="disclaimer-text">{{result.disclaimer}}</text>
+    </view>
+
+    <view class="result-section">
+      <view class="section-label">提交时间</view>
+      <view class="section-content">{{result.createTime}}</view>
+    </view>
+
+    <view class="action-panel">
+      <view class="action-row">
+        <button class="secondary-btn action-btn-half" bindtap="goToStation">前往驿站</button>
+        <button class="secondary-btn action-btn-half" bindtap="goToTreeHole">前往树洞</button>
+      </view>
+    </view>
+  </view>
+</view>

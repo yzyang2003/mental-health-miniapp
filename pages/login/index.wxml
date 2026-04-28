@@ -1,0 +1,19 @@
+<view class="login-page">
+  <view class="login-card">
+    <view class="login-title">毕业设计微信小程序</view>
+    <view class="login-desc">登录后进入主页面，通过底部栏切换“首页 / 树洞 / 我的”。</view>
+
+    <button
+      class="login-btn"
+      type="primary"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+      bindtap="handleLogin"
+    >
+      微信登录
+    </button>
+
+    <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+    <view wx:if="{{successMessage}}" class="success-box">{{successMessage}}</view>
+  </view>
+</view>

@@ -1,0 +1,50 @@
+<view class="quiz-page">
+  <minimal-back />
+  <view wx:if="{{errorMessage}}" class="error-box error-box-page">{{errorMessage}}</view>
+
+  <view class="card">
+    <view class="section-title">可用量表</view>
+    <view wx:if="{{loading && !questionnaireList.length}}" class="empty-text">正在加载问卷...</view>
+    <view wx:elif="{{errorMessage && !questionnaireList.length}}" class="empty-text empty-hint">
+      <view>问卷列表未能加载（见上方红字或检查网络/登录）</view>
+      <view wx:if="{{apiBaseUrl}}" class="empty-sub mono">当前接口根地址：{{apiBaseUrl}}</view>
+    </view>
+    <view wx:elif="{{!questionnaireList.length}}" class="empty-text empty-hint">
+      <view>暂无可用问卷</view>
+      <view class="empty-sub">若数据库已执行种子脚本仍为空，请检查后端是否连上库 <text class="mono">graduation_design</text>、问卷 <text class="mono">status=1</text>。</view>
+      <view wx:if="{{apiBaseUrl}}" class="empty-sub mono">当前接口根地址：{{apiBaseUrl}}</view>
+    </view>
+
+    <view
+      wx:for="{{questionnaireList}}"
+      wx:key="id"
+      class="quiz-item"
+      data-id="{{item.id}}"
+      bindtap="openQuestionnaire"
+    >
+      <image wx:if="{{item.cover}}" class="quiz-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="quiz-title">{{item.title}}</view>
+      <view class="quiz-desc">{{item.description || '暂无问卷描述'}}</view>
+      <view class="quiz-footer">
+        <view class="quiz-action">开始测评</view>
+        <view wx:if="{{item.quizDemoBadge}}" class="quiz-badge">{{item.quizDemoBadge}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">历史记录</view>
+    <view wx:if="{{!historyList.length}}" class="empty-text">你还没有测评记录</view>
+    <view
+      wx:for="{{historyList}}"
+      wx:key="id"
+      class="history-item"
+      data-id="{{item.id}}"
+      bindtap="openLatestResult"
+    >
+      <view class="history-title">{{item.questionnaireTitle}}</view>
+      <view class="history-desc">得分 {{item.score}} · {{item.conclusion}}</view>
+      <view class="history-time">{{item.createTime}}</view>
+    </view>
+  </view>
+</view>

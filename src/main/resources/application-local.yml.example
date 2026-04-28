@@ -1,0 +1,25 @@
+# Copy this file to `application-local.yml` and fill in your own local values.
+# The real `application-local.yml` contains sensitive information and must not be committed.
+
+spring:
+  datasource:
+    # Fill in your local MySQL password
+    password: "your-local-mysql-password"
+
+jwt:
+  # Replace with a long random string in local development
+  secret: "replace-with-a-long-random-string"
+
+wx:
+  # WeChat Mini Program credentials for local debugging
+  appid: "your-wechat-appid"
+  secret: "your-wechat-app-secret"
+  # Set to a mock openid only when you need local-only login bypass
+  mock-openid: ""
+
+ai:
+  api:
+    # OpenAI-compatible endpoint for your own model provider
+    url: "https://your-api-endpoint/v1/chat/completions"
+    key: "your-api-key"
+    model: "your-model-name"
