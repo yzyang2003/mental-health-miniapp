@@ -3,6 +3,7 @@
   "navigationStyle": "custom",
   "enablePullDownRefresh": true,
   "usingComponents": {
-    "minimal-back": "/components/minimal-back/index"
+    "minimal-back": "/components/minimal-back/index",
+    "skeleton": "/components/skeleton/index"
   }
 }

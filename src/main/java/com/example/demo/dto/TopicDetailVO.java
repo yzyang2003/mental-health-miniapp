@@ -13,4 +13,19 @@ public class TopicDetailVO {
     private TopicVO topic;
 
     private List<ReplyVO> replies;
+
+    /**
+     * 回复总数。
+     */
+    private Long replyTotal;
+
+    /**
+     * 回复总页数。
+     */
+    private Long replyPages;
+
+    /**
+     * 当前回复页码。
+     */
+    private Long replyCurrent;
 }

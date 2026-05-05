@@ -1,5 +1,6 @@
 package com.example.demo.module.consult.client;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -22,11 +23,16 @@ import java.util.Map;
 @Slf4j
 public class OpenAiCompletionClient {
 
-    private static final int CONNECT_TIMEOUT_MS = 5000;
-    private static final int READ_TIMEOUT_MS = 15000;
-    private static final int MAX_RETRY_TIMES = 0;
+    @Value("${ai.api.connect-timeout:5000}")
+    private int connectTimeout;
 
-    private final RestTemplate restTemplate = createRestTemplate();
+    @Value("${ai.api.read-timeout:30000}")
+    private int readTimeout;
+
+    @Value("${ai.api.max-retry:1}")
+    private int maxRetry;
+
+    private RestTemplate restTemplate;
 
     @Value("${ai.api.url:}")
     private String aiApiUrl;
@@ -48,6 +54,16 @@ public class OpenAiCompletionClient {
      */
     @Value("${ai.api.temperature:0.4}")
     private Double aiTemperature;
+
+    @PostConstruct
+    public void init() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(connectTimeout);
+        factory.setReadTimeout(readTimeout);
+        this.restTemplate = new RestTemplate(factory);
+        log.info("OpenAiCompletionClient initialized: connectTimeout={}ms, readTimeout={}ms, maxRetry={}",
+                connectTimeout, readTimeout, maxRetry);
+    }
 
     /**
      * 调用大模型；未配置 URL/Key、请求失败或解析不到正文时返回 {@code null}（由调用方决定是否降级）。
@@ -76,7 +92,7 @@ public class OpenAiCompletionClient {
             body.put("temperature", aiTemperature);
         }
 
-        for (int attempt = 0; attempt <= MAX_RETRY_TIMES; attempt++) {
+        for (int attempt = 0; attempt <= maxRetry; attempt++) {
             try {
                 Map<?, ?> response = restTemplate.postForObject(
                         aiApiUrl,
@@ -87,25 +103,26 @@ public class OpenAiCompletionClient {
                 if (StringUtils.hasText(content)) {
                     return content;
                 }
-                if (attempt < MAX_RETRY_TIMES) {
+                if (attempt < maxRetry) {
                     log.warn("OpenAI-compatible completion empty content, retrying attempt={}", attempt + 1);
                 }
             } catch (Exception ex) {
-                if (attempt >= MAX_RETRY_TIMES) {
-                    log.warn("OpenAI-compatible completion request failed after retries", ex);
+                if (attempt >= maxRetry) {
+                    log.warn("OpenAI-compatible completion request failed after {} retries", maxRetry, ex);
                     return null;
                 }
-                log.warn("OpenAI-compatible completion request failed, retrying attempt={}", attempt + 1, ex);
+                log.warn("OpenAI-compatible completion request failed, retrying attempt={}/{}: {}",
+                        attempt + 1, maxRetry, ex.getMessage());
+                try {
+                    Thread.sleep(1000L * (attempt + 1)); // 指数退避
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.warn("Retry sleep interrupted, aborting retries");
+                    return null;
+                }
             }
         }
         return null;
-    }
-
-    private static RestTemplate createRestTemplate() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        requestFactory.setReadTimeout(READ_TIMEOUT_MS);
-        return new RestTemplate(requestFactory);
     }
 
     private static String extractAssistantContent(Map<?, ?> response) {
@@ -125,7 +142,18 @@ public class OpenAiCompletionClient {
             return null;
         }
         Object contentObj = messageMap.get("content");
-        return normalizeContent(contentObj);
+        String content = normalizeContent(contentObj);
+        if (StringUtils.hasText(content)) {
+            return content;
+        }
+        // MiMo 等推理模型：思考过程在 reasoning_content，content 可能为空
+        Object reasoningObj = messageMap.get("reasoning_content");
+        String reasoning = normalizeContent(reasoningObj);
+        if (StringUtils.hasText(reasoning)) {
+            log.info("Using reasoning_content as assistant reply (content was empty)");
+            return reasoning;
+        }
+        return content;
     }
 
     /**

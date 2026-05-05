@@ -2,6 +2,7 @@
   "navigationBarTitleText": "测评结果",
   "navigationStyle": "custom",
   "usingComponents": {
-    "minimal-back": "/components/minimal-back/index"
+    "minimal-back": "/components/minimal-back/index",
+    "markdown-view": "/components/markdown-view/index"
   }
 }

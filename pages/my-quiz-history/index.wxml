@@ -1,14 +1,21 @@
 <view class="history-page">
   <minimal-back />
-  <view class="hero-card">
-    <view class="hero-title">我的测评记录</view>
-    <view class="hero-desc">这里会展示你历次心理测评的结果，方便你观察自己的状态变化。</view>
+
+  <!-- Hero卡片 -->
+  <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+    <view class="hero-title">测评历史</view>
+    <view class="hero-desc">查看你的测评记录</view>
+    <view class="hero-deco">📝</view>
   </view>
 
-  <view wx:if="{{loading && !historyList.length}}" class="empty-card">正在加载测评记录...</view>
-  <view wx:elif="{{!historyList.length}}" class="empty-card">你还没有心理测评记录</view>
+  <!-- 加载中 -->
+  <view wx:if="{{loading && !historyList.length}}" class="loading-card">
+    <view class="spinner"></view>
+    <text class="loading-text">正在加载测评记录...</text>
+  </view>
 
-  <view wx:for="{{historyList}}" wx:key="id" class="history-card" data-id="{{item.id}}" bindtap="openResult">
+  <!-- 历史列表 -->
+  <view wx:for="{{historyList}}" wx:key="id" class="history-item" data-id="{{item.id}}" bindtap="openResult">
     <view wx:if="{{item.quizDemoBadge}}" class="history-demo-badge">{{item.quizDemoBadge}}</view>
     <view class="history-title">{{item.questionnaireTitle}}</view>
     <view class="history-score">
@@ -16,11 +23,19 @@
       <text wx:if="{{item.scorePercent != null}}">（{{item.scorePercent}}%）</text>
       · {{item.conclusion}}
     </view>
-    <view wx:if="{{item.suggestionLines && item.suggestionLines.length}}" class="history-suggestions">
-      <view wx:for="{{item.suggestionLines}}" wx:for-item="line" wx:key="*this" class="history-line">· {{line}}</view>
+    <view wx:if="{{item.displaySuggestions && item.displaySuggestions.length}}" class="history-suggestions">
+      <view wx:for="{{item.displaySuggestions}}" wx:for-item="line" wx:key="*this" class="history-line">· {{line}}</view>
+      <view wx:if="{{item.suggestionLines && item.suggestionLines.length > 3}}" class="history-line history-more">共 {{item.suggestionLines.length}} 条建议</view>
     </view>
     <view wx:else class="history-suggestions">{{item.suggestions}}</view>
     <view class="history-time">{{item.createTime}}</view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && !historyList.length && !errorMessage}}" class="empty-state">
+    <view class="empty-icon">📋</view>
+    <view class="empty-text">暂无测评记录</view>
+    <view class="empty-hint">完成测评后，记录将显示在这里</view>
   </view>
 
   <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>

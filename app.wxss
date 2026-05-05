@@ -17,3 +17,129 @@ page {
   padding: 32rpx;
   box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.06);
 }
+
+/* ========== 统一 Hero 卡片 ========== */
+.hero-card {
+  position: relative;
+  padding: 40rpx var(--space-card-padding);
+  border-radius: 28rpx;
+  box-shadow: 0 12rpx 34rpx rgba(61, 90, 74, 0.18);
+  border: 1rpx solid rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  flex-shrink: 0;
+  /* 默认渐变，各页面可覆盖 */
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+}
+
+.hero-title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+.hero-desc {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.hero-deco {
+  position: absolute;
+  right: 20rpx;
+  bottom: 8rpx;
+  font-size: 80rpx;
+  opacity: 0.18;
+  line-height: 1;
+}
+
+/* ========== 树洞/回复公共 Composer 样式 ========== */
+.topic-textarea {
+  width: 100%;
+  min-height: 112rpx;
+  padding: 12rpx 22rpx;
+  margin-bottom: 0;
+  border-radius: 20rpx;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.74) 0%, rgba(242, 250, 246, 0.74) 52%, rgba(236, 247, 240, 0.7) 100%),
+    radial-gradient(110% 70% at 12% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 58%);
+  border: 1rpx solid rgba(218, 236, 226, 0.9);
+  box-shadow:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1rpx 0 rgba(194, 219, 205, 0.28);
+  backdrop-filter: blur(8rpx) saturate(1.08);
+  -webkit-backdrop-filter: blur(8rpx) saturate(1.08);
+  color: #2f493e;
+  font-size: 28rpx;
+  line-height: 44rpx;
+  box-sizing: border-box;
+}
+
+.topic-placeholder {
+  color: #97aaa2;
+}
+
+.topic-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+  margin-top: 10rpx;
+  padding: 10rpx 0rpx;
+  background: rgba(245, 251, 247, 0.08);
+  border: 0;
+  border-radius: 18rpx;
+  box-sizing: border-box;
+}
+
+.toolbar-mode-toggle {
+  height: 42rpx;
+  line-height: 42rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1rpx solid rgba(166, 184, 173, 0.65);
+  color: #587164;
+  font-size: 25rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.toolbar-mode-toggle-active {
+  background: rgba(21, 196, 101, 0.12);
+  border-color: rgba(18, 194, 100, 0.48);
+  color: #0f8f4b;
+}
+
+.topic-toolbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12rpx;
+  margin-left: auto;
+  min-width: 0;
+  flex: 1;
+}
+
+.toolbar-publish-btn {
+  box-sizing: border-box;
+  height: 42rpx;
+  width: 42rpx;
+  line-height: 42rpx;
+  border-radius: 999rpx;
+  background: #12c264;
+  color: #fff;
+  text-align: center;
+  font-size: 22rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.toolbar-btn-disabled {
+  opacity: 0.6;
+}

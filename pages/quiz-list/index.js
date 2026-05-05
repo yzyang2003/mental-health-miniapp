@@ -11,6 +11,8 @@ Page({
     historyList: [],
     errorMessage: '',
     apiBaseUrl: '',
+    capsuleTopPx: 0,
+    capsuleRightPx: 0,
   },
 
   refreshApiHint() {
@@ -38,11 +40,24 @@ Page({
   },
 
   onShow() {
+    this.calcCapsule()
     if (!this.ensureLogin()) {
       return
     }
     this.refreshApiHint()
     this.fetchHistory()
+  },
+
+  calcCapsule() {
+    try {
+      const info = wx.getMenuButtonBoundingClientRect()
+      this.setData({
+        capsuleTopPx: info.top,
+        capsuleRightPx: wx.getSystemInfoSync().windowWidth - info.right + 4,
+      })
+    } catch (e) {
+      this.setData({ capsuleTopPx: 24, capsuleRightPx: 16 })
+    }
   },
 
   ensureLogin() {

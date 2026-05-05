@@ -1,13 +1,35 @@
 <view class="result-page">
   <minimal-back />
+
+  <!-- Hero卡片 -->
+  <view wx:if="{{result}}" class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+    <view class="hero-title">{{result.questionnaireTitle || '测评结果'}}</view>
+    <view class="hero-desc">查看你的测评结果与解读</view>
+    <view class="hero-deco">📊</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading && !result}}" class="loading-state">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">正在加载测评结果...</view>
+  </view>
+
+  <!-- 错误提示 -->
+  <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+
   <view wx:if="{{result}}" class="result-card">
-    <view class="result-title">{{result.questionnaireTitle || '测评结果'}}</view>
     <view wx:if="{{result.quizDemoBadge}}" class="result-demo-tag">{{result.quizDemoBadge}}</view>
     <view wx:elif="{{result.questionnaireType}}" class="result-type-tag">类型 {{result.questionnaireType}}</view>
 
+    <!-- 得分等级徽章 -->
+    <view wx:if="{{scoreLevel}}" class="level-badge" style="background: {{scoreLevel.bg}}; color: {{scoreLevel.color}};">
+      <text class="level-icon">{{scoreLevel.icon}}</text>
+      <text class="level-text">{{scoreLevel.label}}</text>
+    </view>
+
     <view class="score-block">
       <view class="score-main">
-        <text class="score-num">{{result.score}}</text>
+        <text class="score-num" style="color: {{scoreLevel.color}};">{{result.score}}</text>
         <text wx:if="{{result.maxScore}}" class="score-max">/ {{result.maxScore}}</text>
       </view>
       <view class="result-score-label">本次得分</view>
@@ -15,14 +37,14 @@
 
     <view wx:if="{{result.scorePercent != null}}" class="percent-wrap">
       <view class="percent-bar">
-        <view class="percent-fill" style="width: {{result.scorePercent}}%;"></view>
+        <view class="percent-fill" style="width: {{result.scorePercent}}%; background: {{scoreLevel.color}};"></view>
       </view>
-      <view class="percent-text">约占总分 {{result.scorePercent}}%</view>
+      <view class="percent-text" style="color: {{scoreLevel.color}};">约占总分 {{result.scorePercent}}%</view>
     </view>
 
     <view class="result-section">
       <view class="section-label">结果等级</view>
-      <view class="section-content strong">{{result.conclusion}}</view>
+      <view class="section-content strong" style="color: {{scoreLevel.color || '#35624f'}};">{{result.conclusion}}</view>
     </view>
 
     <view wx:if="{{result.questionnaireType === 'SCL90_DEMO' && result.scl90Report}}" class="result-section scl90-overview-section">
@@ -50,7 +72,7 @@
 
     <view wx:if="{{result.aiGuidance}}" class="result-section ai-guidance-section">
       <view class="section-label">AI 指导</view>
-      <view class="section-content ai-guidance-body">{{result.aiGuidance}}</view>
+      <view class="section-content ai-guidance-body"><markdown-view content="{{result.aiGuidance}}" /></view>
       <button class="primary-btn ai-chat-btn" type="primary" bindtap="goToAi">和小爱聊聊</button>
     </view>
 

@@ -78,11 +78,14 @@ public class TopicController {
     public TopicDetailVO getTopicDetail(@PathVariable Long topicId, HttpServletRequest httpServletRequest) {
         String currentOpenid = resolveOptionalOpenid(httpServletRequest);
         TopicVO topic = topicService.getTopicDetail(currentOpenid, topicId);
-        Page<ReplyVO> replyPage = replyService.getRepliesByTopicId(currentOpenid, topicId, 1, 100);
+        Page<ReplyVO> replyPage = replyService.getRepliesByTopicId(currentOpenid, topicId, 1, 50);
 
         TopicDetailVO topicDetailVO = new TopicDetailVO();
         topicDetailVO.setTopic(topic);
         topicDetailVO.setReplies(replyPage.getRecords());
+        topicDetailVO.setReplyTotal(replyPage.getTotal());
+        topicDetailVO.setReplyPages(replyPage.getPages());
+        topicDetailVO.setReplyCurrent(replyPage.getCurrent());
         return topicDetailVO;
     }
 

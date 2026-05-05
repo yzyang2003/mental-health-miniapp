@@ -1,6 +1,7 @@
 {
-  "navigationBarTitleText": "自我疗愈详情",
+  "navigationBarTitleText": "自我疗愈",
   "navigationStyle": "custom",
+  "enablePullDownRefresh": false,
   "usingComponents": {
     "minimal-back": "/components/minimal-back/index"
   }

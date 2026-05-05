@@ -1,14 +1,15 @@
 <view class="profile-page">
   <minimal-back />
-  <view class="profile-card profile-overview" wx:if="{{userInfo}}">
+  <view class="profile-card profile-overview" wx:if="{{userInfo}}" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
     <view class="overview-row">
       <image class="overview-avatar" src="{{profileForm.avatarUrl}}"></image>
       <view class="overview-main">
         <view class="overview-name">{{userInfo.nickName || '微信用户'}}</view>
         <view class="overview-meta">{{userInfo.city || '未填写城市'}} · {{userInfo.gender === 1 ? '男' : userInfo.gender === 2 ? '女' : '未知'}}</view>
-        <view class="overview-hint">温柔记录，慢慢成长</view>
+        <view class="overview-hint">温柔记录，慢慢成长 · 每一步都算数</view>
       </view>
     </view>
+    <view class="profile-deco">🌸</view>
   </view>
 
   <view class="profile-card">
@@ -43,7 +44,7 @@
     </view>
   </view>
 
-  <view wx:if="{{showProfileEdit}}" class="profile-card">
+  <view wx:if="{{showProfileEdit}}" class="profile-card panel-animate">
     <view class="avatar-row">
       <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
         <image class="avatar" src="{{profileForm.avatarUrl}}"></image>
@@ -95,7 +96,7 @@
     </view>
   </view>
 
-  <view wx:if="{{userInfo && showAccountPanel}}" class="profile-card account-card">
+  <view wx:if="{{userInfo && showAccountPanel}}" class="profile-card account-card panel-animate">
     <view class="info-row">
       <text class="info-label">OpenID（勿外泄）</text>
       <text class="info-value info-muted">{{userInfo.openid}}</text>

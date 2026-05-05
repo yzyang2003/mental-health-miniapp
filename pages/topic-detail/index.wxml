@@ -84,9 +84,21 @@
         </view>
       </view>
     </view>
+
+    <button
+      wx:if="{{replyPage < replyPages}}"
+      class="load-more-replies-btn"
+      loading="{{replyLoadingMore}}"
+      disabled="{{replyLoadingMore}}"
+      bindtap="loadMoreReplies"
+    >{{replyLoadingMore ? '加载中...' : '加载更多回复 (' + replyTotal + '条)'}}</button>
   </view>
 
   <view class="floating-composer" style="{{replyKeyboardHeight > 0 ? ('bottom: ' + replyKeyboardHeight + 'px;') : ''}}">
+    <view wx:if="{{replyTarget}}" class="reply-target-bar">
+      <text class="reply-target-text">回复 @{{replyTarget.replierName}}</text>
+      <text class="reply-target-cancel" catchtap="clearReplyTarget">取消</text>
+    </view>
     <textarea
       class="topic-textarea"
       style="height: {{replyTextareaHeightRpx}}rpx;"

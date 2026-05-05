@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  padding: 128rpx 28rpx 64rpx;
+  padding: 128rpx 28rpx 200rpx;
   box-sizing: border-box;
   background: linear-gradient(180deg, #f4fbf7 0%, #eef7f3 52%, #f8f4ee 100%);
 }
@@ -68,13 +68,11 @@
 .topic-image-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
+  gap: 12rpx;
   margin-top: 20rpx;
 }
 
 .topic-image-item {
-  width: 200rpx;
-  height: 200rpx;
   border-radius: 20rpx;
   overflow: hidden;
   background: rgba(223, 238, 229, 0.6);
@@ -83,6 +81,12 @@
 .topic-image {
   width: 100%;
   height: 100%;
+}
+
+/* 九宫格布局：所有图片统一3列等宽正方形 */
+.topic-image-list .topic-image-item {
+  width: calc(33.33% - 8rpx);
+  aspect-ratio: 1;
 }
 
 .topic-meta {
@@ -208,10 +212,6 @@
   line-height: 1.25;
 }
 
-.reply-action-thread {
-  color: #4b6f5f;
-}
-
 .reply-action-reply {
   color: #2f7d5d;
 }
@@ -220,84 +220,28 @@
   color: #d14a4a;
 }
 
-.reply-target-cancel {
-  color: #0f766e;
-  font-weight: 600;
-}
-
-.floating-composer {
-  position: fixed;
-  left: 28rpx;
-  right: 28rpx;
-  bottom: calc(env(safe-area-inset-bottom) + 24rpx);
-  z-index: 100;
-  padding: 18rpx 20rpx;
-  border-radius: 24rpx;
-  background:
-    linear-gradient(168deg, rgba(255, 255, 255, 0.36) 0%, rgba(244, 251, 247, 0.2) 42%, rgba(232, 247, 238, 0.17) 100%),
-    radial-gradient(120% 70% at 14% 2%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 58%);
-  border: 1rpx solid rgba(255, 255, 255, 0.35);
-  box-shadow:
-    0 18rpx 40rpx rgba(61, 90, 74, 0.09),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.41),
-    inset 0 -1rpx 0 rgba(190, 219, 203, 0.21);
-  backdrop-filter: blur(20rpx) saturate(1.28);
-  -webkit-backdrop-filter: blur(20rpx) saturate(1.28);
-}
-
-.reply-composer-body {
-  position: relative;
-  min-height: 128rpx;
-}
-
-.reply-composer-input {
-  width: 100%;
-  min-height: 128rpx;
-  max-height: 180rpx;
-  margin-right: 0;
-  padding: 12rpx 74rpx 12rpx 14rpx;
-  border-radius: 14rpx;
-  border: 1rpx solid rgba(205, 225, 214, 0.9);
-  background: #f5fbf7;
-  font-size: 26rpx;
-  line-height: 1.55;
-  color: #2f493e;
-  box-sizing: border-box;
-}
-
-.reply-composer-placeholder {
-  color: #8ea49a;
-  font-style: italic;
-}
-
-.reply-send-btn {
-  position: absolute;
-  right: 10rpx;
-  bottom: 10rpx;
-  top: auto;
-  width: 52rpx;
-  margin: 0;
-  min-width: 52rpx;
-  max-width: 52rpx;
-  height: 52rpx;
-  min-height: 52rpx;
-  max-height: 52rpx;
-  line-height: 1.2;
-  padding: 0;
-  border-radius: 26rpx;
-  background: linear-gradient(135deg, #55b285, #469c73);
-  color: #ffffff;
-  font-size: 34rpx;
-  font-weight: 600;
-  box-shadow: 0 8rpx 18rpx rgba(77, 151, 116, 0.24);
+.reply-target-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 3;
+  justify-content: space-between;
+  padding: 10rpx 14rpx;
+  margin-bottom: 10rpx;
+  border-radius: 12rpx;
+  background: rgba(220, 245, 232, 0.92);
+  border: 1rpx solid rgba(134, 206, 172, 0.55);
 }
 
-.reply-send-btn-disabled {
-  opacity: 0.55;
+.reply-target-text {
+  font-size: 24rpx;
+  color: #2f7d5d;
+  font-weight: 500;
+}
+
+.reply-target-cancel {
+  font-size: 24rpx;
+  color: #d14a4a;
+  font-weight: 600;
+  padding: 4rpx 12rpx;
 }
 
 .empty-text {
@@ -327,90 +271,39 @@
   line-height: 1.6;
 }
 
-.topic-textarea {
-  width: 100%;
-  min-height: 112rpx;
-  padding: 12rpx 22rpx;
-  margin-bottom: 0;
-  border-radius: 20rpx;
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.74) 0%, rgba(242, 250, 246, 0.74) 52%, rgba(236, 247, 240, 0.7) 100%),
-    radial-gradient(110% 70% at 12% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 58%);
-  border: 1rpx solid rgba(218, 236, 226, 0.9);
-  box-shadow:
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.65),
-    inset 0 -1rpx 0 rgba(194, 219, 205, 0.28);
-  backdrop-filter: blur(8rpx) saturate(1.08);
-  -webkit-backdrop-filter: blur(8rpx) saturate(1.08);
-  color: #2f493e;
-  font-size: 28rpx;
-  line-height: 44rpx;
-  box-sizing: border-box;
-}
-
-.topic-placeholder {
-  color: #97aaa2;
-}
-
-.topic-toolbar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10rpx;
-  margin-top: 10rpx;
-  padding: 10rpx 0rpx;
-  background: rgba(245, 251, 247, 0.08);
-  border: 0;
-  border-radius: 18rpx;
-  box-sizing: border-box;
-}
-
-.toolbar-mode-toggle {
-  height: 42rpx;
-  line-height: 42rpx;
-  padding: 0 16rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1rpx solid rgba(166, 184, 173, 0.65);
-  color: #587164;
-  font-size: 25rpx;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.toolbar-mode-toggle-active {
-  background: rgba(21, 196, 101, 0.12);
-  border-color: rgba(18, 194, 100, 0.48);
-  color: #0f8f4b;
-}
-
-.topic-toolbar-right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12rpx;
-  margin-left: auto;
-  min-width: 0;
-  flex: 1;
-}
-
-.toolbar-publish-btn {
-  box-sizing: border-box;
-  height: 42rpx;
-  width: 42rpx;
-  line-height: 42rpx;
-  border-radius: 999rpx;
-  background: #12c264;
-  color: #fff;
+.load-more-replies-btn {
+  margin-top: 16rpx;
+  margin-bottom: 8rpx;
+  padding: 16rpx 0;
+  border-radius: 16rpx;
+  background: rgba(223, 238, 229, 0.6);
+  border: 1rpx solid rgba(134, 206, 172, 0.5);
+  color: #2f7d5d;
+  font-size: 26rpx;
+  font-weight: 500;
   text-align: center;
-  font-size: 22rpx;
-  font-weight: 600;
-  flex-shrink: 0;
+  line-height: 1.4;
+}
+.load-more-replies-btn::after {
+  border: none;
 }
 
-.toolbar-btn-disabled {
-  opacity: 0.6;
+.floating-composer {
+  position: fixed;
+  left: 28rpx;
+  right: 28rpx;
+  bottom: 24rpx;
+  z-index: 100;
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  background:
+    linear-gradient(168deg, rgba(255, 255, 255, 0.36) 0%, rgba(244, 251, 247, 0.2) 42%, rgba(232, 247, 238, 0.17) 100%),
+    radial-gradient(120% 70% at 14% 2%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 58%);
+  border: 1rpx solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 18rpx 40rpx rgba(61, 90, 74, 0.09),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.41),
+    inset 0 -1rpx 0 rgba(190, 219, 203, 0.21);
+  backdrop-filter: blur(20rpx) saturate(1.28);
+  -webkit-backdrop-filter: blur(20rpx) saturate(1.28);
 }
-
-

@@ -2,21 +2,32 @@
   class="chat-page"
   style="padding-top: {{navTop}}px; padding-bottom: {{bottomSafeInset}}px; padding-left: {{sideInsetPx}}px; padding-right: {{sideInsetPx}}px;"
 >
-  <minimal-back />
-  <view class="chat-shell" style="border-radius: {{shellRadiusPx}}px;">
-    <view class="chat-content">
+  <view class="chat-shell">
+    <!-- 标题栏：与原生胶囊同行 -->
+    <view class="chat-header" style="top: 0; height: {{capsuleHeight + 4}}px; border-radius: {{shellRadiusPx}}px {{shellRadiusPx}}px 0 0; padding: 0 {{sideInsetPx}}px;">
+      <view class="chat-header-left">
+        <view class="back-btn" bindtap="goBack">←</view>
+        <view class="chat-header-new-chat" bindtap="startNewChat">新对话</view>
+      </view>
+      <view class="chat-header-title">小爱 · AI心理顾问</view>
+      <view class="chat-header-right"></view>
+    </view>
+
+    <view class="chat-content" style="padding-top: {{capsuleHeight + 4}}px;">
       <view wx:if="{{!loading && !historyLoadFailed && !historyList.length && !sending && !isTyping}}" class="welcome-card {{guideClosing ? 'welcome-card-closing' : ''}}" style="margin-top: {{historyTopSafePx}}px;">
-        <view class="welcome-title">温柔聊一聊</view>
-        <view class="welcome-desc">慢慢说，我在听。也可点推荐问题。</view>
+        <view class="welcome-avatar">🤖</view>
+        <view class="welcome-title">你好，我是小爱 💚</view>
+        <view class="welcome-desc">有什么想聊的？我随时都在</view>
         <view class="prompt-grid">
           <view
             wx:for="{{quickPrompts}}"
             wx:key="index"
-            class="prompt-chip {{sending || isTyping || guideClosing ? 'prompt-chip-disabled' : ''}}"
+            class="prompt-card {{sending || isTyping || guideClosing ? 'prompt-card-disabled' : ''}}"
             data-prompt="{{item}}"
             bindtap="useQuickPrompt"
           >
-            {{item}}
+            <view class="prompt-card-icon">{{item.icon}}</view>
+            <view class="prompt-card-text">{{item.text}}</view>
           </view>
         </view>
       </view>
@@ -38,7 +49,14 @@
         scroll-with-animation="{{scrollWithAnimation}}"
       >
         <view class="chat-history-inner" style="padding-left: {{contentInsetPx}}px; padding-right: {{contentInsetPx}}px; padding-top: {{historyTopSafePx}}px;">
-          <view wx:if="{{loading && !historyList.length && !sending && !isTyping}}" class="empty-text">正在加载对话记录...</view>
+          <view wx:if="{{loading && !historyList.length && !sending && !isTyping}}" class="chat-skeleton-wrap">
+            <skeleton
+              items="{{[{titleWidth: '40%', descWidth: '70%'}, {titleWidth: '35%', descWidth: '55%'}, {titleWidth: '45%', descWidth: '65%'}]}}"
+              showAvatar="{{false}}"
+              showDesc="{{true}}"
+              type="chat-left"
+            />
+          </view>
           <view wx:elif="{{historyLoadFailed && !historyList.length && !sending && !isTyping}}" class="empty-state">
             <view class="empty-state-title">历史记录加载失败</view>
             <view class="empty-state-desc">{{errorMessage || '网络有点不稳定，请稍后再试。'}}</view>
@@ -56,10 +74,19 @@
                 <view class="thinking-dot"></view>
               </view>
               <view wx:else class="message-content {{item.status === 'error' ? 'message-content-error' : ''}}">
-                {{item.content}}<text wx:if="{{item.status === 'typing'}}" class="typing-cursor">|</text>
+                <view wx:if="{{item.role === 'assistant'}}" class="message-content-md">
+                  <markdown-view content="{{item.content}}" />
+                  <text wx:if="{{item.status === 'typing'}}" class="typing-cursor">|</text>
+                </view>
+                <view wx:else>
+                  {{item.content}}
+                </view>
               </view>
               <view wx:if="{{item.status === 'error'}}" class="message-error-tip">可直接点击上方重试继续。</view>
-              <view wx:if="{{item.createTime}}" class="message-time">{{item.createTime}}</view>
+              <view class="message-footer">
+                <view wx:if="{{item.createTime}}" class="message-time">{{item.createTime}}</view>
+                <view wx:if="{{item.role === 'assistant' && item.status === 'done'}}" class="message-tts-btn" data-content="{{item.content}}" bindtap="playTts">🔊</view>
+              </view>
             </view>
           </view>
 
@@ -69,7 +96,7 @@
       </scroll-view>
     </view>
 
-    <view class="composer-wrapper" style="bottom: {{keyboardHeight}}px; margin-top: {{contentInsetPx}}px; padding-left: {{contentInsetPx}}px; padding-right: {{contentInsetPx}}px; padding-bottom: {{contentInsetPx}}px;">
+    <view class="composer-wrapper" style="bottom: calc(20rpx + {{keyboardHeight}}px); margin-top: {{contentInsetPx}}px; padding-left: {{contentInsetPx}}px; padding-right: {{contentInsetPx}}px; padding-bottom: {{contentInsetPx}}px;">
       <view wx:if="{{errorMessage && !(historyLoadFailed && !historyList.length)}}" class="error-box">{{errorMessage}}</view>
 
       <view wx:if="{{lastFailedMessage}}" class="retry-bar">
@@ -77,28 +104,66 @@
         <button class="retry-btn" size="mini" disabled="{{sending || isTyping}}" bindtap="retryLastMessage">重试发送</button>
       </view>
 
-      <view class="composer-card">
-        <textarea
-          class="message-input"
-          placeholder="说说此刻心情..."
-          placeholder-class="message-input-placeholder"
-          maxlength="500"
-          auto-height
-          show-confirm-bar="{{false}}"
-          adjust-position="{{false}}"
-          cursor-spacing="24"
-          value="{{message}}"
-          disabled="{{sending}}"
-          bindinput="onMessageInput"
-          bindlinechange="onInputLineChange"
-          bindfocus="onInputFocus"
-          bindblur="onInputBlur"
-          bindkeyboardheightchange="onKeyboardHeightChange"
-        />
-
-        <view class="composer-toolbar">
-          <view class="composer-new-chat-btn" bindtap="startNewChat">
-          新对话
+      <view class="composer-card {{isInputFocus ? 'composer-card-focus' : ''}} {{isInputExpanded ? 'composer-card-expanded' : ''}}">
+        <!-- 展开模式 -->
+        <view wx:if="{{isInputExpanded}}" class="composer-expanded-row">
+          <textarea
+            class="message-input-expanded"
+            placeholder="说说此刻心情..."
+            placeholder-class="message-input-placeholder"
+            maxlength="500"
+            auto-height
+            show-confirm-bar="{{false}}"
+            adjust-position="{{false}}"
+            cursor-spacing="24"
+            value="{{message}}"
+            disabled="{{sending}}"
+            bindinput="onMessageInput"
+            bindlinechange="onInputLineChange"
+            bindfocus="onInputFocus"
+            bindblur="onInputBlur"
+            bindkeyboardheightchange="onKeyboardHeightChange"
+            focus="{{isInputExpanded}}"
+          />
+          <view class="composer-expanded-actions">
+            <view class="collapse-input-btn" bindtap="collapseInput">收起</view>
+            <view
+              wx:if="{{sending || isTyping}}"
+              class="send-circle-btn stop-circle-btn"
+              bindtap="stopOutput"
+            >
+              <view class="stop-center-dot"></view>
+            </view>
+            <view wx:else class="send-circle-btn" bindtap="sendMessage">
+              ↑
+            </view>
+          </view>
+        </view>
+        
+        <!-- 正常模式 -->
+        <view wx:elif="{{inputMode === 'text'}}" class="composer-input-row {{inputLineCount >= 4 ? 'composer-input-row-4line' : ''}}">
+          <view wx:if="{{inputLineCount <= 1}}" class="voice-btn" bindtap="switchToVoiceMode">
+            🎤
+          </view>
+          <textarea
+            class="message-input {{inputLineCount > 1 ? 'message-input-multiline' : ''}}"
+            placeholder="说说此刻心情..."
+            placeholder-class="message-input-placeholder"
+            maxlength="500"
+            auto-height
+            show-confirm-bar="{{false}}"
+            adjust-position="{{false}}"
+            cursor-spacing="24"
+            value="{{message}}"
+            disabled="{{sending}}"
+            bindinput="onMessageInput"
+            bindlinechange="onInputLineChange"
+            bindfocus="onInputFocus"
+            bindblur="onInputBlur"
+            bindkeyboardheightchange="onKeyboardHeightChange"
+          />
+          <view wx:if="{{inputLineCount >= 4}}" class="expand-input-btn" bindtap="expandInput">
+            ↗
           </view>
           <view
             wx:if="{{sending || isTyping}}"
@@ -109,6 +174,22 @@
           </view>
           <view wx:else class="send-circle-btn" bindtap="sendMessage">
             ↑
+          </view>
+        </view>
+        
+        <!-- 语音输入模式 -->
+        <view wx:else class="composer-voice-row">
+          <view class="keyboard-btn" bindtap="switchToTextMode">
+            ⌨️
+          </view>
+          <view 
+            class="voice-talk-btn {{isRecording ? 'voice-talk-btn-recording' : ''}}" 
+            bindtouchstart="startRecording" 
+            bindtouchend="stopRecording" 
+            bindtouchcancel="cancelRecording"
+          >
+            <text wx:if="{{isRecording}}">松开结束 ({{recordingDuration}}s)</text>
+            <text wx:else>按住说话</text>
           </view>
         </view>
       </view>

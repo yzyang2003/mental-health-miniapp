@@ -5,6 +5,8 @@ const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia0
 
 Page({
   data: {
+    capsuleTopPx: 0,
+    capsuleRightPx: 0,
     loading: false,
     userInfo: null,
     errorMessage: '',
@@ -58,7 +60,22 @@ Page({
     if (!ensurePageLogin()) {
       return
     }
+    this.calcCapsule()
     this.fetchUserInfo()
+  },
+
+  calcCapsule() {
+    try {
+      if (!wx.getMenuButtonBoundingClientRect) return
+      const rect = wx.getMenuButtonBoundingClientRect()
+      if (!rect || rect.top < 0 || rect.height <= 0) return
+      const systemInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+      const windowWidth = systemInfo?.windowWidth || 375
+      this.setData({
+        capsuleTopPx: Math.round(rect.top),
+        capsuleRightPx: Math.round(windowWidth - rect.right),
+      })
+    } catch (e) { /* ignore */ }
   },
 
   fetchUserInfo() {
@@ -145,10 +162,11 @@ Page({
       .then((data) => {
         this.setData({
           userInfo: data,
-          successMessage: '用户资料保存成功',
+          successMessage: '',
         })
         getApp().globalData.userInfo = data
         this.syncProfileForm(data)
+        wx.showToast({ title: '保存成功', icon: 'success' })
       })
       .catch((error) => {
         this.setData({

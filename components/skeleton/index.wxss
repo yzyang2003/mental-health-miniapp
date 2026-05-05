@@ -1,0 +1,150 @@
+/* ========== 骨架屏通用 ========== */
+.skeleton {
+  padding: 4rpx 0;
+}
+
+/* 闪烁动画 */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 通用条目 */
+.skeleton-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  background: #ffffff;
+  border-radius: 20rpx;
+}
+
+.skeleton-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 头像 */
+.skeleton-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e7 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+  margin-right: 20rpx;
+}
+
+/* 内容区 */
+.skeleton-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 标题条 */
+.skeleton-title {
+  height: 32rpx;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e7 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+/* 描述条 */
+.skeleton-desc {
+  height: 24rpx;
+  background: linear-gradient(90deg, #f5f5f5 25%, #ececec 50%, #f5f5f5 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.skeleton-desc:last-child {
+  margin-bottom: 0;
+}
+
+/* ========== card 类型（默认） ========== */
+.skeleton-item--card {
+  background: #f8fafc;
+  border-radius: 20rpx;
+}
+
+/* ========== list 类型 ========== */
+.skeleton-item--list {
+  background: transparent;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f1f5f9;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.skeleton-item--list:last-child {
+  border-bottom: none;
+}
+
+/* ========== chat-left / chat-right 气泡 ========== */
+.skeleton-item--chat-left,
+.skeleton-item--chat-right {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 20rpx;
+  border-radius: 0;
+}
+
+.skeleton-item--chat-left {
+  justify-content: flex-start;
+}
+
+.skeleton-item--chat-right {
+  justify-content: flex-end;
+}
+
+.skeleton-item--chat-left .skeleton-content {
+  max-width: 68%;
+  padding: 24rpx;
+  background: #f3f5f7;
+  border-radius: 24rpx;
+  border-bottom-left-radius: 12rpx;
+}
+
+.skeleton-item--chat-right .skeleton-content {
+  max-width: 68%;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #d5e8dc, #bdd9c8);
+  border-radius: 24rpx;
+  border-bottom-right-radius: 12rpx;
+}
+
+.skeleton-item--chat-left .skeleton-title,
+.skeleton-item--chat-right .skeleton-title {
+  background: linear-gradient(90deg, rgba(255,255,255,0.5) 25%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.5) 75%);
+  background-size: 200% 100%;
+}
+
+.skeleton-item--chat-right .skeleton-title,
+.skeleton-item--chat-right .skeleton-desc {
+  margin-left: auto;
+}
+
+/* ========== detail 类型（问卷详情） ========== */
+.skeleton-item--detail {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  flex-direction: column;
+}
+
+.skeleton-item--detail .skeleton-title {
+  height: 36rpx;
+  margin-bottom: 24rpx;
+}
+
+.skeleton-item--detail .skeleton-desc {
+  margin-bottom: 16rpx;
+}

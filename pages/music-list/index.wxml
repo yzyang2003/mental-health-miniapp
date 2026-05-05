@@ -1,39 +1,119 @@
 <view class="music-page">
   <minimal-back />
 
-  <view class="hero-card">
+  <!-- Hero -->
+  <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
     <view class="hero-title">音乐疗愈</view>
-    <view class="hero-subtitle">选一个场景歌单，复制链接到浏览器打开</view>
+    <view class="hero-desc">选一个场景歌单</view>
+    <view class="hero-desc">复制链接到浏览器打开</view>
+    <view class="hero-deco">🎵</view>
   </view>
 
-  <view class="grid">
+  <!-- Mood Filter -->
+  <view class="mood-bar">
     <view
-      wx:for="{{playlists}}"
+      wx:for="{{moodTabs}}"
+      wx:key="id"
+      class="mood-tab {{selectedMoodId === item.id ? 'mood-tab-active' : ''}}"
+      style="{{selectedMoodId === item.id ? 'background:' + item.color + '; border-color:' + item.color + ';' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="selectMood"
+    >
+      <view class="mood-icon">{{item.icon}}</view>
+      <view class="mood-name" style="{{selectedMoodId === item.id ? 'color:#fff;' : ''}}">{{item.name}}</view>
+    </view>
+  </view>
+
+  <!-- Skeleton -->
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton-card">
+      <view class="skeleton-cover skeleton-shine"></view>
+      <view class="skeleton-body">
+        <view class="skeleton-line skeleton-line-title skeleton-shine"></view>
+        <view class="skeleton-line skeleton-line-desc skeleton-shine"></view>
+        <view class="skeleton-line skeleton-line-short skeleton-shine"></view>
+      </view>
+    </view>
+    <view class="skeleton-card">
+      <view class="skeleton-cover skeleton-shine"></view>
+      <view class="skeleton-body">
+        <view class="skeleton-line skeleton-line-title skeleton-shine"></view>
+        <view class="skeleton-line skeleton-line-desc skeleton-shine"></view>
+        <view class="skeleton-line skeleton-line-short skeleton-shine"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Featured Card -->
+  <view wx:if="{{!loading && featured}}" class="featured-card" bindtap="onFeaturedTap">
+    <view class="featured-cover-wrap">
+      <image
+        wx:if="{{featured.coverImage && !featured.coverFailed}}"
+        class="featured-cover"
+        src="{{featured.coverImage}}"
+        mode="aspectFill"
+        data-id="{{featured.id}}"
+        binderror="onCoverError"
+      />
+      <view wx:else class="featured-cover-placeholder">
+        <view class="featured-cover-icon">🎵</view>
+      </view>
+      <view class="featured-play-btn">
+        <view class="featured-play-icon">▶</view>
+      </view>
+      <view class="featured-badge">🔥 最热</view>
+    </view>
+    <view class="featured-info">
+      <view class="featured-name">{{featured.name}}</view>
+      <view class="featured-desc">{{featured.description}}</view>
+      <view class="featured-meta">
+        <view class="featured-tag" style="background: {{featured.emotionType === '放松' ? 'rgba(110,170,138,0.15)' : featured.emotionType === '专注' ? 'rgba(96,165,250,0.15)' : featured.emotionType === '助眠' ? 'rgba(167,139,250,0.15)' : featured.emotionType === '释放' ? 'rgba(245,158,11,0.15)' : 'rgba(249,115,22,0.15)'}}; color: {{featured.emotionType === '放松' ? '#6eaa8a' : featured.emotionType === '专注' ? '#60a5fa' : featured.emotionType === '助眠' ? '#a78bfa' : featured.emotionType === '释放' ? '#f59e0b' : '#f97316'}};">{{featured.emotionType}}</view>
+        <view class="featured-duration">⏱ {{featured.durationText}}</view>
+        <view class="featured-plays">▶ {{featured.playCount}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Playlist List -->
+  <view class="playlist-list" wx:if="{{!loading}}">
+    <view
+      wx:for="{{filteredPlaylists}}"
       wx:key="id"
       class="playlist-card"
-      data-url="{{item.shareUrl}}"
-      bindtap="onCopyPlaylist"
+      data-item="{{item}}"
+      bindtap="onPlaylistTap"
     >
-      <view class="cover-wrap">
+      <view class="playlist-cover-wrap">
         <image
           wx:if="{{item.coverImage && !item.coverFailed}}"
-          class="cover-img"
+          class="playlist-cover"
           src="{{item.coverImage}}"
           mode="aspectFill"
           data-id="{{item.id}}"
           binderror="onCoverError"
         />
-        <view wx:else class="cover-placeholder"></view>
+        <view wx:else class="playlist-cover-placeholder">
+          <view class="playlist-cover-icon">🎵</view>
+        </view>
       </view>
-      <view class="card-body">
-        <view class="card-title">{{item.categoryName}}</view>
-        <view class="card-desc">{{item.categoryDesc}}</view>
+      <view class="playlist-info">
+        <view class="playlist-name">{{item.name}}</view>
+        <view class="playlist-desc">{{item.description}}</view>
+        <view class="playlist-meta">
+          <view class="playlist-tag" style="background: {{item.emotionType === '放松' ? 'rgba(110,170,138,0.15)' : item.emotionType === '专注' ? 'rgba(96,165,250,0.15)' : item.emotionType === '助眠' ? 'rgba(167,139,250,0.15)' : item.emotionType === '释放' ? 'rgba(245,158,11,0.15)' : 'rgba(249,115,22,0.15)'}}; color: {{item.emotionType === '放松' ? '#6eaa8a' : item.emotionType === '专注' ? '#60a5fa' : item.emotionType === '助眠' ? '#a78bfa' : item.emotionType === '释放' ? '#f59e0b' : '#f97316'}};">{{item.emotionType}}</view>
+          <view class="playlist-duration">⏱ {{item.durationText}}</view>
+        </view>
+      </view>
+      <view class="playlist-play-btn">
+        <view class="play-icon-small">▶</view>
       </view>
     </view>
   </view>
 
-  <view class="tips-card">
-    <view class="tips-title">使用说明</view>
-    <view class="tips-text">链接为第三方网页，需在手机浏览器中打开；若无法打开，请检查网络或稍后更换歌单链接。</view>
+  <!-- Empty State -->
+  <view class="empty-state" wx:if="{{!loading && filteredPlaylists.length === 0}}">
+    <view class="empty-icon">🎵</view>
+    <view class="empty-text">该心情分类暂无歌单</view>
+    <view class="empty-hint">试试其他分类吧</view>
   </view>
 </view>

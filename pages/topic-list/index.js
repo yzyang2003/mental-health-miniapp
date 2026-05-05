@@ -1,6 +1,6 @@
 const { request, formatRequestError, buildApiUrl } = require('../../utils/request')
 const { ensurePageLogin, buildAuthorizationHeader } = require('../../utils/auth')
-const { normalizeTopicImageUrl, buildTextareaHeight, calculateTextareaRows } = require('../../utils/topic')
+const { normalizeTopicImageUrl, buildTextareaHeight, calculateTextareaRows, formatRelativeTime, checkSensitiveContent } = require('../../utils/topic')
 
 const TOPIC_COLLAPSE_LENGTH = 140
 const MAX_TOPIC_IMAGES = 9
@@ -22,9 +22,11 @@ const EMOJI_STICKERS = [
 
 Page({
   data: {
+    capsuleTopPx: 0,
+    capsuleRightPx: 0,
     mineOnly: false,
     heroTitle: '树洞互助社区',
-    heroDesc: '这里可以匿名分享心情、记录近况，也可以在回复中获得温和的陪伴与支持。',
+    heroDesc: '在这里自由表达，被温柔以待',
     listTitle: '树洞列表',
     emptyHint: '还没有树洞帖子，快来发布第一条吧',
     loading: false,
@@ -87,10 +89,22 @@ Page({
     if (!ensurePageLogin()) {
       return
     }
-
+    this.calcCapsule()
     if (getApp().globalData.topicListShouldRefresh) {
       getApp().globalData.topicListShouldRefresh = false
       this.fetchTopicList(1, false)
+    }
+  },
+
+  calcCapsule() {
+    try {
+      const info = wx.getMenuButtonBoundingClientRect()
+      this.setData({
+        capsuleTopPx: info.top,
+        capsuleRightPx: wx.getSystemInfoSync().windowWidth - info.right + 4,
+      })
+    } catch (e) {
+      this.setData({ capsuleTopPx: 24, capsuleRightPx: 16 })
     }
   },
 
@@ -388,6 +402,34 @@ Page({
       return
     }
 
+    const sensitiveWord = checkSensitiveContent(topicForm.content)
+    if (sensitiveWord) {
+      wx.showModal({
+        title: '内容提示',
+        content: '检测到您的内容可能包含敏感信息，如果您正在经历困扰，建议联系学校心理中心或拨打心理援助热线 400-161-9995。是否继续发布？',
+        confirmText: '继续发布',
+        cancelText: '返回修改',
+        success: (modalRes) => {
+          if (modalRes.confirm) {
+            this.doPublishTopic()
+          }
+        },
+      })
+      return
+    }
+
+    this.doPublishTopic()
+  },
+
+  doPublishTopic() {
+    if (this.data.publishing) {
+      return
+    }
+    const topicForm = this.data.topicForm
+    if (!topicForm.content || !topicForm.content.trim()) {
+      return
+    }
+
     this.setData({
       publishing: true,
       errorMessage: '',
@@ -452,8 +494,8 @@ Page({
           return
         }
         const records = (data && data.records) || []
-        const mergedRecords = append ? this.data.topicList.concat(records) : records
-        const topicList = this.buildTopicListForDisplay(mergedRecords)
+        const newRecords = this.buildTopicListForDisplay(records)
+        const topicList = append ? this.data.topicList.concat(newRecords) : newRecords
         this.setData({
           topicList,
           page: (data && data.current) || page,
@@ -554,7 +596,7 @@ Page({
       return {
         ...item,
         images,
-        createTime: this.formatDisplayDateTime(item && item.createTime),
+        createTime: formatRelativeTime(item && item.createTime),
         _isLongContent: isLong,
         _displayContent: isLong ? `${content.slice(0, TOPIC_COLLAPSE_LENGTH)}...` : content,
       }
@@ -563,59 +605,18 @@ Page({
 
   parseImageList(rawImages) {
     if (Array.isArray(rawImages)) {
-      return rawImages
-        .map((url) => this.cleanImageToken(url))
-        .filter((url) => !!url)
+      return rawImages.filter((url) => !!url && String(url).trim())
     }
-    if (typeof rawImages === 'string') {
-      const text = rawImages.trim()
-      if (!text) {
-        return []
-      }
-      // 兼容后端偶发返回 JSON 字符串。
-      if ((text.startsWith('[') && text.endsWith(']')) || (text.startsWith('"') && text.endsWith('"'))) {
-        try {
-          const parsed = JSON.parse(text)
-          if (Array.isArray(parsed)) {
-            return parsed
-              .map((url) => this.cleanImageToken(url))
-              .filter((url) => !!url)
-          }
-          if (typeof parsed === 'string' && parsed.trim()) {
-            const one = this.cleanImageToken(parsed)
-            return one ? [one] : []
-          }
-        } catch (error) {
-          // ignore and fallback split
+    // 兜底：如果后端意外返回 JSON 字符串，尝试解析
+    if (typeof rawImages === 'string' && rawImages.trim()) {
+      try {
+        const parsed = JSON.parse(rawImages)
+        if (Array.isArray(parsed)) {
+          return parsed.filter((url) => !!url && String(url).trim())
         }
-      }
-      // 兼容后端偶发返回 Java List.toString(): [url1, url2]
-      const unwrapped = text.startsWith('[') && text.endsWith(']')
-        ? text.slice(1, -1)
-        : text
-      if (unwrapped.includes(',')) {
-        return unwrapped
-          .split(',')
-          .map((item) => this.cleanImageToken(item))
-          .filter((item) => !!item)
-      }
-      const one = this.cleanImageToken(unwrapped)
-      return one ? [one] : []
+      } catch (e) { /* ignore */ }
     }
     return []
-  },
-
-  cleanImageToken(value) {
-    if (value == null) {
-      return ''
-    }
-    let token = String(value).trim()
-    if (!token) {
-      return ''
-    }
-    // 去掉字符串两端的引号和残留中括号
-    token = token.replace(/^['"\[]+/, '').replace(/['"\]]+$/, '').trim()
-    return token
   },
 
   normalizeTopicImageUrl(rawUrl) {
@@ -717,17 +718,5 @@ Page({
     })
   },
 
-  formatDisplayDateTime(value) {
-    if (value == null || value === '') {
-      return ''
-    }
-    const text = String(value).trim().replace('T', ' ')
-    const match = text.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?/)
-    if (match) {
-      const [, year, month, day, hour, minute, second] = match
-      return `${year}年${month}月${day}日 ${hour}:${minute}:${second || '00'}`
-    }
-    return text
-  },
 
 })

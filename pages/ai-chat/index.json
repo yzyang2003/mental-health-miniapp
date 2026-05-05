@@ -3,6 +3,7 @@
   "navigationStyle": "custom",
   "disableScroll": true,
   "usingComponents": {
-    "minimal-back": "/components/minimal-back/index"
+    "skeleton": "/components/skeleton/index",
+    "markdown-view": "/components/markdown-view/index"
   }
 }

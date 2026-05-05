@@ -25,6 +25,11 @@
     "navigationBarTextStyle": "black",
     "backgroundTextStyle": "light"
   },
+  "permission": {
+    "scope.record": {
+      "desc": "需要您的录音权限以使用语音输入功能"
+    }
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"

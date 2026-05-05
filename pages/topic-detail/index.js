@@ -1,6 +1,6 @@
 const { request, formatRequestError } = require('../../utils/request')
 const { ensurePageLogin } = require('../../utils/auth')
-const { normalizeTopicImageUrl, buildTextareaHeight, calculateTextareaRows } = require('../../utils/topic')
+const { normalizeTopicImageUrl, buildTextareaHeight, calculateTextareaRows, formatRelativeTime } = require('../../utils/topic')
 
 const TOPIC_COLLAPSE_LENGTH = 220
 const REPLY_COLLAPSE_LENGTH = 120
@@ -29,6 +29,11 @@ Page({
     replyTextareaHeightRpx: TEXTAREA_LINE_HEIGHT_RPX + TEXTAREA_VERTICAL_PADDING_RPX,
     activeThreadRootId: null,
     replyExpandMap: {},
+    replyPage: 1,
+    replyTotal: 0,
+    replyPages: 0,
+    replySize: 50,
+    replyLoadingMore: false,
     replyForm: {
       content: '',
       anonymous: true,
@@ -76,31 +81,34 @@ Page({
       method: 'GET',
     })
       .then((data) => {
-        const detail = this.buildDetailForDisplay(data || {})
-        const allReplies = (detail && detail.replyAllList) || []
-        const activeTarget = this.data.replyTarget
-        const nextTarget = activeTarget
-          ? allReplies.find((item) => item.id === activeTarget.id) || null
-          : null
+        const rawReplies = Array.isArray(data && data.replies) ? data.replies : []
+        // 仅调用一次：先计算 activeThreadRootId，再构建展示数据
         let nextActiveThreadRootId = this.data.activeThreadRootId || null
-        if (nextTarget && nextTarget._rootId) {
-          nextActiveThreadRootId = nextTarget._rootId
+        const activeTarget = this.data.replyTarget
+        if (activeTarget && activeTarget.id) {
+          const foundRootId = this.findReplyRootId(rawReplies, activeTarget.id)
+          if (foundRootId) {
+            nextActiveThreadRootId = foundRootId
+          }
         } else if (nextActiveThreadRootId) {
-          const hasActiveRoot = (detail.replyThreadStats || []).some((t) => t.rootId === nextActiveThreadRootId)
-          if (!hasActiveRoot) {
+          const rootExists = rawReplies.some((r) => r.id === nextActiveThreadRootId)
+          if (!rootExists) {
             nextActiveThreadRootId = null
           }
         }
-        const rebuiltDetail = this.buildDetailForDisplay(data || {}, nextActiveThreadRootId)
-        const rebuiltAllReplies = rebuiltDetail.replyAllList || []
-        const rebuiltTarget = nextTarget
-          ? rebuiltAllReplies.find((item) => item.id === nextTarget.id) || null
+        const detail = this.buildDetailForDisplay(data || {}, nextActiveThreadRootId)
+        const allReplies = detail.replyAllList || []
+        const rebuiltTarget = activeTarget
+          ? allReplies.find((item) => item.id === activeTarget.id) || null
           : null
         this.setData({
-          detail: rebuiltDetail,
+          detail,
           replyTarget: rebuiltTarget,
           replyPlaceholder: this.buildReplyPlaceholder(rebuiltTarget),
           activeThreadRootId: nextActiveThreadRootId,
+          replyPage: (data && data.replyCurrent) || 1,
+          replyTotal: (data && data.replyTotal) || 0,
+          replyPages: (data && data.replyPages) || 0,
         })
       })
       .catch((error) => {
@@ -299,6 +307,51 @@ Page({
     })
   },
 
+  loadMoreReplies() {
+    if (this.data.replyLoadingMore) {
+      return
+    }
+    const nextPage = this.data.replyPage + 1
+    if (this.data.replyPages && nextPage > this.data.replyPages) {
+      return
+    }
+
+    this.setData({ replyLoadingMore: true })
+
+    request({
+      url: `/api/reply/list?topicId=${this.data.topicId}&page=${nextPage}&size=${this.data.replySize}`,
+      method: 'GET',
+    })
+      .then((pageData) => {
+        const newReplies = (pageData && pageData.records) || []
+        if (!newReplies.length) {
+          return
+        }
+        // 合并到现有回复数据中
+        const existingRaw = (this.data.detail && this.data.detail.replies) || []
+        const mergedRaw = existingRaw.concat(newReplies)
+        const mergedDetail = {
+          ...this.data.detail,
+          replies: mergedRaw,
+        }
+        const detail = this.buildDetailForDisplay(mergedDetail, this.data.activeThreadRootId)
+        this.setData({
+          detail,
+          replyPage: (pageData && pageData.current) || nextPage,
+          replyTotal: (pageData && pageData.total) || this.data.replyTotal,
+          replyPages: (pageData && pageData.pages) || this.data.replyPages,
+        })
+      })
+      .catch((error) => {
+        this.setData({
+          errorMessage: formatRequestError(error, '加载更多回复失败'),
+        })
+      })
+      .finally(() => {
+        this.setData({ replyLoadingMore: false })
+      })
+  },
+
   deleteTopic() {
     if (!this.data.topicId) {
       return
@@ -376,6 +429,19 @@ Page({
     })
   },
 
+  findReplyRootId(replies, targetReplyId) {
+    // 在原始回复列表中，根据 repliedReplyId 向上查找根回复 ID
+    const byId = new Map()
+    ;(replies || []).forEach((r) => { byId.set(r.id, r) })
+    let current = byId.get(targetReplyId)
+    const visited = new Set()
+    while (current && current.repliedReplyId && byId.has(current.repliedReplyId) && !visited.has(current.id)) {
+      visited.add(current.id)
+      current = byId.get(current.repliedReplyId)
+    }
+    return current ? current.id : targetReplyId
+  },
+
   buildDetailForDisplay(rawDetail, forceActiveRootId) {
     if (!rawDetail) {
       return rawDetail
@@ -417,28 +483,16 @@ Page({
       _isLongContent: isLong,
       _expandedContent: expanded || !isLong,
       _displayContent: displayContent,
-      _compactTime: this.formatCompactTime(item && item.createTime),
+      _compactTime: formatRelativeTime(item && item.createTime),
     }
   },
 
-  formatCompactTime(value) {
-    if (value == null || value === '') {
-      return ''
-    }
-    const str = String(value).trim()
-    const match = str.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/)
-    if (match) {
-      const [, , month, day, hour, minute] = match
-      return `${month}-${day} ${hour}:${minute}`
-    }
-    return str.replace('T', ' ').slice(5, 16)
-  },
 
   buildReplyPlaceholder(target) {
     if (!target || !target.replierName) {
       return '发布回复'
     }
-    return '发布回复'
+    return `回复 @${target.replierName}`
   },
 
   buildReplyTextareaHeight(content) {

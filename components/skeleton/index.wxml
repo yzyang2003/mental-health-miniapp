@@ -1,0 +1,31 @@
+<view class="skeleton skeleton--{{type}}">
+  <view
+    class="skeleton-item skeleton-item--{{type}}"
+    wx:for="{{items}}"
+    wx:key="index"
+  >
+    <!-- 头像占位 -->
+    <view wx:if="{{showAvatar}}" class="skeleton-avatar"></view>
+
+    <view class="skeleton-content">
+      <!-- 标题行 -->
+      <view
+        class="skeleton-title"
+        style="width: {{item.titleWidth || '60%'}}"
+      ></view>
+      <!-- 描述行 -->
+      <view
+        wx:if="{{showDesc}}"
+        class="skeleton-desc"
+        style="width: {{item.descWidth || '80%'}}"
+      ></view>
+      <!-- 额外行（用于 detail 模式的选项占位） -->
+      <block wx:if="{{item.lines}}" wx:for="{{item.lines}}" wx:for-item="line" wx:key="index">
+        <view
+          class="skeleton-desc"
+          style="width: {{line.width || '70%'}}"
+        ></view>
+      </block>
+    </view>
+  </view>
+</view>

@@ -3,6 +3,7 @@
   "navigationStyle": "custom",
   "usingComponents": {
     "bottom-nav": "/components/bottom-nav/index",
-    "minimal-back": "/components/minimal-back/index"
+    "minimal-back": "/components/minimal-back/index",
+    "skeleton": "/components/skeleton/index"
   }
 }

@@ -1,10 +1,23 @@
 <view class="quiz-page">
   <minimal-back />
+
+  <!-- Hero卡片 -->
+  <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+    <view class="hero-title">心理测评</view>
+    <view class="hero-desc">选择量表开始自我探索</view>
+    <view class="hero-deco">📋</view>
+  </view>
+
   <view wx:if="{{errorMessage}}" class="error-box error-box-page">{{errorMessage}}</view>
 
   <view class="card">
-    <view class="section-title">可用量表</view>
-    <view wx:if="{{loading && !questionnaireList.length}}" class="empty-text">正在加载问卷...</view>
+    <skeleton
+      wx:if="{{loading && !questionnaireList.length}}"
+      items="{{[{titleWidth: '70%', descWidth: '90%'}, {titleWidth: '60%', descWidth: '80%'}, {titleWidth: '80%', descWidth: '70%'}]}}"
+      showAvatar="{{false}}"
+      showDesc="{{true}}"
+      type="card"
+    />
     <view wx:elif="{{errorMessage && !questionnaireList.length}}" class="empty-text empty-hint">
       <view>问卷列表未能加载（见上方红字或检查网络/登录）</view>
       <view wx:if="{{apiBaseUrl}}" class="empty-sub mono">当前接口根地址：{{apiBaseUrl}}</view>
@@ -34,7 +47,14 @@
 
   <view class="card">
     <view class="section-title">历史记录</view>
-    <view wx:if="{{!historyList.length}}" class="empty-text">你还没有测评记录</view>
+    <skeleton
+      wx:if="{{loading && !historyList.length}}"
+      items="{{[{titleWidth: '50%', descWidth: '60%'}, {titleWidth: '40%', descWidth: '50%'}]}}"
+      showAvatar="{{false}}"
+      showDesc="{{true}}"
+      type="card"
+    />
+    <view wx:elif="{{!historyList.length}}" class="empty-text">你还没有测评记录</view>
     <view
       wx:for="{{historyList}}"
       wx:key="id"

@@ -86,14 +86,15 @@ VALUES
  JSON_ARRAY('情绪管理', '自我关怀', '抑郁'),
  9, 1);
 
-DELETE FROM `music` WHERE `id` IN (1, 2, 3, 4, 5);
+DELETE FROM `music` WHERE `id` IN (1, 2, 3, 4, 5, 6);
 INSERT INTO `music` (`id`, `song_name`, `singer`, `cover`, `emotion_type`, `url`, `duration`, `play_count`, `status`)
 VALUES
-(1, '轻音舒缓示例', 'SoundHelix', NULL, '放松', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', 420, 0, 1),
-(2, '助眠氛围示例', 'SoundHelix', NULL, '助眠', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', 380, 0, 1),
-(3, '专注背景示例', 'SoundHelix', NULL, '专注', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', 400, 0, 1),
-(4, '振奋启动示例', 'SoundHelix', NULL, '振奋', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3', 360, 0, 1),
-(5, '深夜安稳示例', 'SoundHelix', NULL, '助眠', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3', 430, 0, 1);
+(1, '轻音舒缓示例', 'SoundHelix', '/assets/music/7fdc256458750faed22460234f17554d.jpg', '放松', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', 420, 0, 1),
+(2, '助眠氛围示例', 'SoundHelix', '/assets/music/12fc9564c1a628426f39de6cc03318c7.jpg', '助眠', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', 380, 0, 1),
+(3, '专注背景示例', 'SoundHelix', '/assets/music/81cbc7e61a1ddd8455a1a228a28bacca.jpg', '专注', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', 400, 0, 1),
+(4, '振奋启动示例', 'SoundHelix', '/assets/music/91f3ab4f2469325aecd30b6d2e8c305d.jpg', '振奋', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3', 360, 0, 1),
+(5, '深夜安稳示例', 'SoundHelix', '/assets/music/a2cbed27c8b10d691e93284d58eb1699.jpg', '助眠', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3', 430, 0, 1),
+(6, '助睡眠白噪音：大海、溪流、雨', '大虾201314', '/assets/music/b839683faa7eb6daa413c0e9f692a3a8.jpg', '助眠', 'https://music.163.com/m/playlist?id=5016977210&creatorId=3329468118', 0, 0, 1);
 
 DELETE FROM `self_healing` WHERE `id` IN (1, 2, 3, 4, 5);
 INSERT INTO `self_healing` (`id`, `title`, `cover`, `description`, `issue_type`, `steps`, `duration`, `status`)
@@ -149,4 +150,14 @@ VALUES
    JSON_OBJECT('title', '番茄冲刺', 'description', '专注执行 10 分钟，期间不切换任务。', 'duration', 600),
    JSON_OBJECT('title', '结束复盘', 'description', '记录完成情况和下一步起点。', 'duration', 90)
  ),
- 810, 1);
+  810, 1);
+
+DELETE FROM `music_playlist` WHERE `id` IN (1, 2, 3, 4, 5, 6);
+INSERT INTO `music_playlist` (`id`, `name`, `description`, `cover_image`, `share_url`, `emotion_type`, `duration_text`, `play_count`, `status`)
+VALUES
+(1, '深度睡眠', '助眠白噪音与舒缓旋律', '/assets/music/b839683faa7eb6daa413c0e9f692a3a8.jpg', 'https://music.163.com/m/playlist?id=5016977210&creatorId=3329468118', '助眠', '60分钟', 0, 1),
+(2, '专注工作', '提升效率的轻音乐', '/assets/music/81cbc7e61a1ddd8455a1a228a28bacca.jpg', 'https://music.163.com/#/playlist?id=8614268177', '专注', '45分钟', 0, 1),
+(3, '缓解焦虑', '平复心情的治愈旋律', '/assets/music/12fc9564c1a628426f39de6cc03318c7.jpg', 'https://music.163.com/#/playlist?id=8451005609', '放松', '50分钟', 0, 1),
+(4, '冥想放松', '瑜伽与冥想专用音乐', '/assets/music/7fdc256458750faed22460234f17554d.jpg', 'https://music.163.com/#/playlist?id=8353278325', '释放', '40分钟', 0, 1),
+(5, '情绪释放', '允许悲伤的疗愈歌单', '/assets/music/91f3ab4f2469325aecd30b6d2e8c305d.jpg', 'https://music.163.com/#/playlist?id=9584686054', '释放', '55分钟', 0, 1),
+(6, '晨间唤醒', '开启活力一天的轻快乐章', '/assets/music/a2cbed27c8b10d691e93284d58eb1699.jpg', 'https://music.163.com/#/playlist?id=8463165696', '振奋', '35分钟', 0, 1);

@@ -1,5 +1,7 @@
 <view class="detail-page">
   <minimal-back />
+
+  <!-- 提交遮罩层（两种模式共用） -->
   <view
     wx:if="{{submitting}}"
     class="submit-overlay"
@@ -12,46 +14,171 @@
     </view>
   </view>
 
-  <view wx:if="{{loading && !detail}}" class="empty-text">正在加载问卷详情...</view>
-  <view wx:elif="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+  <!-- ====== 单题模式：整个页面固定 ====== -->
+  <block wx:if="{{viewMode === 'single'}}">
+    <view class="single-fixed-container" style="top: {{capsuleTopPx}}px;">
+      <!-- Hero卡片 -->
+      <view wx:if="{{detail}}" class="hero-card" style="padding-right: {{capsuleRightPx}}px;">
+        <view class="hero-title">{{detail.title}}</view>
+        <view class="hero-desc">{{detail.description || '暂无问卷描述'}}</view>
+        <view class="hero-deco">📋</view>
+      </view>
 
-  <view wx:if="{{detail}}" class="card">
-    <view wx:if="{{detail.quizDemoBadge}}" class="demo-banner">
-      <text class="demo-banner-title">{{detail.quizDemoBadge}}</text>
-      <text class="demo-banner-text">划界为演示规则，结果仅供自助参考，不可替代诊疗。</text>
+      <!-- 进度条 -->
+      <view wx:if="{{detail}}" class="progress-bar-container">
+        <view class="progress-info">
+          <text class="progress-text">已答 {{answeredCount}} / {{totalQuestions}} 题</text>
+          <text class="progress-percent">{{progressPercent}}%</text>
+        </view>
+        <view class="progress-track">
+          <view class="progress-fill" style="width: {{progressPercent}}%"></view>
+        </view>
+      </view>
+
+      <!-- 题目卡片 -->
+      <view wx:if="{{detail}}" class="card single-card">
+        <view wx:if="{{detail.quizDemoBadge}}" class="demo-banner">
+          <text class="demo-banner-title">{{detail.quizDemoBadge}}</text>
+          <text class="demo-banner-text">划界为演示规则，结果仅供自助参考，不可替代诊疗。</text>
+        </view>
+
+        <view class="question-card {{isTransitioning ? 'question-transitioning' : ''}}"
+              wx:if="{{currentQuestion}}">
+          <view class="question-number">{{currentQuestionIndex + 1}} / {{totalQuestions}}</view>
+          <view class="question-title">{{currentQuestion.content}}</view>
+          <view
+            wx:for="{{currentQuestion.options}}"
+            wx:key="optionIndex"
+            wx:for-item="option"
+            wx:for-index="optionIndex"
+            class="option-item {{currentSelectedOption === optionIndex ? 'option-item-active' : ''}}"
+            data-question-id="{{currentQuestion.id}}"
+            data-option-index="{{optionIndex}}"
+            bindtap="selectOption"
+          >
+            <view class="option-text">{{option.text}}</view>
+          </view>
+        </view>
+
+        <button
+          wx:if="{{detail && detail.type === 'SCL90_DEMO'}}"
+          class="quick-fill-btn"
+          disabled="{{submitting}}"
+          bindtap="fillAllMiddle"
+        >一键填充（测试）：全部选中等</button>
+
+        <!-- 导航按钮行：上一题 | 题目全览 | 下一题/提交 -->
+        <view class="question-nav">
+          <button
+            class="nav-btn"
+            disabled="{{currentQuestionIndex === 0}}"
+            bindtap="goPrev"
+          >上一题</button>
+
+          <button
+            class="nav-btn nav-btn-overview"
+            bindtap="toggleViewMode"
+          >题目全览</button>
+
+          <button
+            wx:if="{{currentQuestionIndex < totalQuestions - 1 && !allAnswered}}"
+            class="nav-btn nav-btn-primary"
+            bindtap="goNext"
+          >下一题</button>
+
+          <button
+            wx:else
+            class="nav-btn nav-btn-submit"
+            type="primary"
+            loading="{{submitting}}"
+            disabled="{{submitting}}"
+            bindtap="submitQuiz"
+          >提交</button>
+        </view>
+      </view>
     </view>
-    <view class="quiz-title">{{detail.title}}</view>
-    <view class="quiz-desc">{{detail.description || '暂无问卷描述'}}</view>
+  </block>
 
-    <view wx:for="{{detail.questions}}" wx:key="id" class="question-item" wx:for-item="question" wx:for-index="questionIndex">
-      <view class="question-title">{{questionIndex + 1}}. {{question.content}}</view>
-      <view
-        wx:for="{{question.options}}"
-        wx:key="optionIndex"
-        wx:for-item="option"
-        wx:for-index="optionIndex"
-        class="option-item {{selectedAnswers[question.id] === optionIndex ? 'option-item-active' : ''}}"
-        data-question-id="{{question.id}}"
-        data-option-index="{{optionIndex}}"
-        bindtap="selectOption"
-      >
-        <view class="option-text">{{option.text}}</view>
+  <!-- ====== 瀑布流模式：可滚动，进度条sticky ====== -->
+  <block wx:if="{{viewMode === 'waterfall'}}">
+    <!-- Hero卡片 -->
+    <view wx:if="{{detail}}" class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+      <view class="hero-title">{{detail.title}}</view>
+      <view class="hero-desc">{{detail.description || '暂无问卷描述'}}</view>
+      <view class="hero-deco">📋</view>
+    </view>
+
+    <skeleton
+      wx:if="{{loading && !detail}}"
+      items="{{[{titleWidth: '65%', descWidth: '90%', lines: [{width: '80%'}, {width: '70%'}, {width: '85%'}]}, {titleWidth: '55%', descWidth: '85%', lines: [{width: '75%'}, {width: '65%'}, {width: '80%'}]}, {titleWidth: '70%', descWidth: '80%', lines: [{width: '70%'}, {width: '60%'}, {width: '75%'}]}]}}"
+      showAvatar="{{false}}"
+      showDesc="{{true}}"
+      type="detail"
+    />
+    <view wx:elif="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+
+    <!-- 进度条：sticky吸附，下滑后固定在胶囊位置 -->
+    <view wx:if="{{detail}}"
+          class="progress-bar-container"
+          style="top: {{capsuleTopPx}}px;">
+      <view class="progress-info">
+        <text class="progress-text">已答 {{answeredCount}} / {{totalQuestions}} 题</text>
+        <text class="progress-percent">{{progressPercent}}%</text>
+      </view>
+      <view class="progress-track">
+        <view class="progress-fill" style="width: {{progressPercent}}%"></view>
       </view>
     </view>
 
-    <button
-      wx:if="{{detail && detail.type === 'SCL90_DEMO'}}"
-      class="quick-fill-btn"
-      disabled="{{submitting}}"
-      bindtap="fillAllMiddle"
-    >一键填充（测试）：全部选中等</button>
+    <view wx:if="{{detail}}" class="card">
+      <view wx:if="{{detail.quizDemoBadge}}" class="demo-banner">
+        <text class="demo-banner-title">{{detail.quizDemoBadge}}</text>
+        <text class="demo-banner-text">划界为演示规则，结果仅供自助参考，不可替代诊疗。</text>
+      </view>
 
-    <button
-      class="submit-btn"
-      type="primary"
-      loading="{{submitting}}"
-      disabled="{{submitting}}"
-      bindtap="submitQuiz"
-    >提交并查看结果</button>
-  </view>
+      <button
+        class="nav-btn nav-btn-overview waterfall-return-btn"
+        bindtap="toggleViewMode"
+      >返回单题</button>
+
+      <view
+        wx:for="{{detail.questions}}"
+        wx:key="id"
+        wx:for-item="question"
+        wx:for-index="qIdx"
+        id="question-{{qIdx}}"
+        class="waterfall-question"
+      >
+        <view class="question-number">{{qIdx + 1}} / {{totalQuestions}}</view>
+        <view class="question-title">{{question.content}}</view>
+        <view
+          wx:for="{{question.options}}"
+          wx:key="optionIndex"
+          wx:for-item="option"
+          wx:for-index="optionIndex"
+          class="option-item {{selectedAnswers[question.id] === optionIndex ? 'option-item-active' : ''}}"
+          data-question-id="{{question.id}}"
+          data-option-index="{{optionIndex}}"
+          bindtap="selectOption"
+        >
+          <view class="option-text">{{option.text}}</view>
+        </view>
+      </view>
+
+      <button
+        wx:if="{{detail && detail.type === 'SCL90_DEMO'}}"
+        class="quick-fill-btn"
+        disabled="{{submitting}}"
+        bindtap="fillAllMiddle"
+      >一键填充（测试）：全部选中等</button>
+
+      <button
+        class="nav-btn nav-btn-submit waterfall-submit-btn"
+        type="primary"
+        loading="{{submitting}}"
+        disabled="{{submitting}}"
+        bindtap="submitQuiz"
+      >提交</button>
+    </view>
+  </block>
 </view>

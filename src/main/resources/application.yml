@@ -49,3 +49,13 @@ ai:
     # 速度优先参数（演示场景）：限制输出长度 + 适度降随机，减少尾部生成时间
     max-tokens: ${AI_API_MAX_TOKENS:700}
     temperature: ${AI_API_TEMPERATURE:0.4}
+    # 超时与重试配置
+    connect-timeout: ${AI_API_CONNECT_TIMEOUT:5000}
+    read-timeout: ${AI_API_READ_TIMEOUT:30000}
+    max-retry: ${AI_API_MAX_RETRY:1}
+
+# MiMo语音服务配置
+mimo:
+  api:
+    key: ${MIMO_API_KEY:}
+    base-url: ${MIMO_API_BASE_URL:https://api.xiaomimimo.com}

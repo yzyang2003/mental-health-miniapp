@@ -1,15 +1,35 @@
 <view class="notice-page">
   <minimal-back />
-  <view class="hero-card">
-    <view class="hero-title">公告通知中心</view>
-    <view class="hero-desc">系统公告、活动消息、版本变更和后续平台通知会逐步汇总到这里。</view>
+
+  <!-- Hero卡片 -->
+  <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+    <view class="hero-title">通知中心</view>
+    <view class="hero-desc">查看系统通知与消息</view>
+    <view class="hero-deco">🔔</view>
   </view>
 
-  <view wx:if="{{!notices.length}}" class="notice-empty">
-    <text class="notice-empty-text">暂无公告，后续通知将展示在这里。</text>
+  <!-- 加载骨架屏 -->
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton-item">
+      <view class="skeleton-line skeleton-line--title"></view>
+      <view class="skeleton-line"></view>
+      <view class="skeleton-line skeleton-line--short"></view>
+    </view>
+    <view class="skeleton-item">
+      <view class="skeleton-line skeleton-line--title"></view>
+      <view class="skeleton-line"></view>
+      <view class="skeleton-line skeleton-line--short"></view>
+    </view>
   </view>
 
-  <view wx:for="{{notices}}" wx:key="id" class="notice-card">
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && !notices.length}}" class="empty-state">
+    <view class="empty-icon">📭</view>
+    <view class="empty-text">暂无公告，后续通知将展示在这里。</view>
+  </view>
+
+  <!-- 通知列表 -->
+  <view wx:if="{{!loading && notices.length}}" wx:for="{{notices}}" wx:key="id" class="notice-item">
     <view class="notice-title">{{item.title}}</view>
     <view class="notice-content">{{item.content}}</view>
     <view class="notice-time">{{item.createTime}}</view>

@@ -1,8 +1,10 @@
 <view class="container {{mineOnly ? 'container-mine' : ''}}">
   <minimal-back />
-  <view class="topic-hero-card">
-    <view class="topic-hero-title">{{heroTitle}}</view>
-    <view class="topic-hero-desc">{{heroDesc}}</view>
+  <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+    <view class="hero-title">{{heroTitle}}</view>
+    <view class="hero-desc">{{heroDesc}}</view>
+    <view class="hero-desc">每一次倾诉，都值得被听见</view>
+    <view class="hero-deco">🌱</view>
   </view>
   <view class="card list-card">
     <view class="list-header">

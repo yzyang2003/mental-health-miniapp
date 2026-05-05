@@ -187,9 +187,17 @@ public class ReplyServiceImpl implements ReplyService {
                 ? ANONYMOUS_NAME
                 : fallbackNickname(userService.getNicknameByOpenid(reply.getReplierOpenid())));
 
-        if (StringUtils.hasText(reply.getRepliedUserOpenid())) {
-            String repliedUserName = userService.getNicknameByOpenid(reply.getRepliedUserOpenid());
-            replyVO.setRepliedUserName(StringUtils.hasText(repliedUserName) ? repliedUserName : ANONYMOUS_NAME);
+        if (reply.getRepliedReplyId() != null) {
+            // 查询被回复的回复，检查是否匿名
+            Reply repliedReply = replyMapper.selectById(reply.getRepliedReplyId());
+            if (repliedReply != null && Boolean.TRUE.equals(repliedReply.getAnonymous())) {
+                // 被回复者是匿名，显示"匿名用户"
+                replyVO.setRepliedUserName(ANONYMOUS_NAME);
+            } else if (StringUtils.hasText(reply.getRepliedUserOpenid())) {
+                // 被回复者是实名，显示真实昵称
+                String repliedUserName = userService.getNicknameByOpenid(reply.getRepliedUserOpenid());
+                replyVO.setRepliedUserName(StringUtils.hasText(repliedUserName) ? repliedUserName : ANONYMOUS_NAME);
+            }
         }
         replyVO.setRepliedReplyId(reply.getRepliedReplyId());
         replyVO.setCanDelete(StringUtils.hasText(currentOpenid) && currentOpenid.equals(reply.getReplierOpenid()));

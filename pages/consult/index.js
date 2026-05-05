@@ -2,31 +2,31 @@ const { request } = require('../../utils/request')
 const { normalizeQuestionnaireList } = require('../../utils/quizNormalize')
 const { ensurePageLogin } = require('../../utils/auth')
 const { sortQuestionnaireList } = require('../../utils/quizCatalog')
-
-const CORE_NOTE_BY_TYPE = {
-  SCL90_DEMO: '9维度综合心理症状自评量表，适合个体近期整体心理状态评估自查',
-  PHQ9_DEMO: '9条目抑郁风险快筛，评估近两周个体情绪状态，适合抑郁情绪自查',
-  GAD7_DEMO: '7条目焦虑风险快筛，评估近两周个体情绪状态，适合焦虑情绪自查',
-  SDS_DEMO: '20条目抑郁自评量表，适合个体近期抑郁症状筛查',
-  SAS_DEMO: '20条目焦虑自评量表，适合个体近期焦虑症状筛查',
-}
+const { CORE_NOTE_BY_TYPE } = require('../../utils/consultConfig')
 Page({
   data: {
+    capsuleTopPx: 0,
+    capsuleRightPx: 0,
     modules: [
       {
         key: 'quiz',
         title: '心理测评',
         desc: '选择量表完成测评，系统会给出分值、结论和建议。',
         path: '/pages/quiz-list/index',
+        icon: '📊',
+        colorTheme: 'blue',
       },
       {
         key: 'chat',
-        title: 'AI 咨询师“小爱”',
+        title: 'AI 咨询师"小爱"',
         desc: '和小爱进行文字对话，支持查看最近聊天记录。',
         path: '/pages/ai-chat/index',
+        icon: '💬',
+        colorTheme: 'purple',
       },
     ],
     questionnaireQuickList: [],
+    chatSummary: '',
   },
 
   onLoad() {
@@ -34,11 +34,25 @@ Page({
       return
     }
     this.fetchQuestionnaireQuickList()
+    this.fetchChatSummary()
   },
 
   onShow() {
     if (!this.ensureLogin()) {
       return
+    }
+    this.calcCapsule()
+  },
+
+  calcCapsule() {
+    try {
+      const info = wx.getMenuButtonBoundingClientRect()
+      this.setData({
+        capsuleTopPx: info.top,
+        capsuleRightPx: wx.getSystemInfoSync().windowWidth - info.right + 4,
+      })
+    } catch (e) {
+      this.setData({ capsuleTopPx: 24, capsuleRightPx: 16 })
     }
   },
 
@@ -47,6 +61,7 @@ Page({
   },
 
   fetchQuestionnaireQuickList() {
+    this.setData({ quickListLoading: true })
     return request({
       url: '/api/consult/quiz/list',
       method: 'GET',
@@ -62,12 +77,44 @@ Page({
           .slice(0, 5)
         this.setData({
           questionnaireQuickList: quickList,
+          quickListLoading: false,
         })
       })
       .catch(() => {
         this.setData({
           questionnaireQuickList: [],
+          quickListLoading: false,
         })
+      })
+  },
+
+  fetchChatSummary() {
+    return request({
+      url: '/api/consult/chat/history',
+      method: 'GET',
+      data: { page: 1, size: 2 },
+    })
+      .then((res) => {
+        const records = (res && res.records) || []
+        if (records.length === 0) {
+          this.setData({ chatSummary: '' })
+          return
+        }
+        // 取最后一条用户消息作为摘要
+        const lastUserMsg = records
+          .reverse()
+          .find((item) => item.role === 'user')
+        if (lastUserMsg && lastUserMsg.content) {
+          const summary = lastUserMsg.content.length > 50
+            ? lastUserMsg.content.slice(0, 50) + '...'
+            : lastUserMsg.content
+          this.setData({ chatSummary: summary })
+        } else {
+          this.setData({ chatSummary: '' })
+        }
+      })
+      .catch(() => {
+        this.setData({ chatSummary: '' })
       })
   },
 

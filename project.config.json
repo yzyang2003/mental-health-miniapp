@@ -2,7 +2,21 @@
   "compileType": "miniprogram",
   "libVersion": "trial",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "docs" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "folder", "value": "sql" },
+      { "type": "folder", "value": "src" },
+      { "type": "folder", "value": "tmpfix" },
+      { "type": "folder", "value": "tmpreview" },
+      { "type": "folder", "value": "uploads" },
+      { "type": "folder", "value": "inference" },
+      { "type": "folder", "value": ".git" },
+      { "type": "file", "value": "pom.xml" },
+      { "type": "file", "value": "test.py" },
+      { "type": "file", "value": "README.md" },
+      { "type": "file", "value": ".gitignore" }
+    ],
     "include": []
   },
   "setting": {

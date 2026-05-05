@@ -1,14 +1,176 @@
+<!-- WXS 工具函数：模板内调用 -->
+<wxs module="util">
+// 检查文章是否已收藏（favorites 是 [{id, time}] 数组）
+module.exports = {
+  isFav: function(favorites, articleId) {
+    for (var i = 0; i < favorites.length; i++) {
+      if (favorites[i].id === articleId) return true
+    }
+    return false
+  }
+}
+</wxs>
+
 <view class="article-page">
   <minimal-back />
-  <view class="list-card">
-    <view class="section-title">心理文章列表</view>
-    <view class="section-subtitle">共 {{articleList.length}} 篇 · 点击卡片阅读原文</view>
 
-    <view wx:for="{{articleList}}" wx:key="id" class="article-item" data-item="{{item}}" bindtap="onArticleTap">
-      <view class="article-title">{{item.title}}</view>
-      <view class="article-source">{{item.source}}</view>
-      <view class="article-summary">{{item.description}}</view>
+  <!-- 方案A：Hero 卡片 -->
+  <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+    <view class="hero-title">心理文章</view>
+    <view class="hero-desc">焦虑、压力、情绪调节</view>
+    <view class="hero-desc">在文字中找到共鸣与力量</view>
+    <view class="hero-deco">📖</view>
+  </view>
+
+  <!-- 方案E：统一筛选栏 -->
+  <view class="filter-section">
+    <scroll-view class="category-scroll" scroll-x enable-flex>
+      <view
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="category-tab {{selectedCategoryId === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="selectCategory"
+      >
+        <text class="category-icon">{{item.icon}}</text>
+        <text>{{item.name}}</text>
+      </view>
+    </scroll-view>
+    <view class="filter-chips">
+      <view
+        class="filter-chip {{filterMode === 'favorites' ? 'active' : ''}}"
+        data-mode="favorites"
+        bindtap="switchFilterMode"
+      >⭐ 收藏{{favoritesCount > 0 ? ' (' + favoritesCount + ')' : ''}}</view>
+      <view
+        class="filter-chip {{filterMode === 'history' ? 'active' : ''}}"
+        data-mode="history"
+        bindtap="switchFilterMode"
+      >📚 历史{{historyCount > 0 ? ' (' + historyCount + ')' : ''}}</view>
     </view>
-    <view class="tips-text">提示：外部链接需在小程序后台配置业务域名。</view>
+  </view>
+
+  <!-- 方案G：骨架屏 -->
+  <view class="skeleton-list" wx:if="{{isLoading}}">
+    <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+      <view class="skeleton-header">
+        <view class="skeleton-tag skeleton-shine"></view>
+        <view class="skeleton-fav skeleton-shine"></view>
+      </view>
+      <view class="skeleton-title skeleton-shine"></view>
+      <view class="skeleton-meta">
+        <view class="skeleton-source skeleton-shine"></view>
+        <view class="skeleton-readtime skeleton-shine"></view>
+      </view>
+      <view class="skeleton-desc skeleton-shine"></view>
+    </view>
+  </view>
+
+  <!-- 文章列表（带过渡动效） -->
+  <view class="article-list {{listTransition ? 'list-exit' : 'list-enter'}}" wx:if="{{!isLoading}}">
+    <view
+      wx:for="{{filteredArticles}}"
+      wx:key="id"
+      class="article-card"
+      data-item="{{item}}"
+      bindtap="onArticleTap"
+    >
+      <view class="article-card-header">
+        <view class="article-category">{{item.category}}</view>
+        <view class="article-favorite" data-id="{{item.id}}" catchtap="toggleFavorite">
+          <image class="star-icon" src="{{util.isFav(favorites, item.id) ? '/assets/icons/star-filled.svg' : '/assets/icons/star-outline.svg'}}" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="article-title">{{item.title}}</view>
+      <view class="article-meta">
+        <view class="article-category-tag" wx:if="{{item.category}}">{{item.category}}</view>
+        <view class="article-views" wx:if="{{item.viewCount}}">👁 {{item.viewCount}}</view>
+      </view>
+      <view class="article-summary">{{item.summary}}</view>
+      <!-- 收藏/历史模式下显示时间戳 -->
+      <view class="article-card-footer" wx:if="{{filterMode === 'favorites' || filterMode === 'history'}}">
+        <view class="article-timestamp" wx:if="{{filterMode === 'favorites'}}">
+          <text class="timestamp-icon">⭐</text>
+          <text class="timestamp-text">{{item._favTime}}</text>
+        </view>
+        <view class="article-timestamp" wx:if="{{filterMode === 'history'}}">
+          <text class="timestamp-icon">📚</text>
+          <text class="timestamp-text">{{item._histTime}}</text>
+        </view>
+      </view>
+      <view class="article-card-footer" wx:else>
+        <view class="article-update-time" wx:if="{{item.updateTime}}">
+          <text class="update-time-icon">🕐</text>
+          <text class="update-time-text">更新于 {{item.updateTime}}</text>
+        </view>
+        <view class="article-read-hint">点击查看详情 →</view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{filteredArticles.length === 0}}">
+      <view class="empty-illustration">
+        <view class="empty-emoji {{showEmpty ? 'empty-breathing' : ''}}">🌿</view>
+        <view class="empty-emoji-float">🍃</view>
+      </view>
+      <view class="empty-title {{showEmpty ? 'empty-fade-in' : ''}}" wx:if="{{searchKeyword}}">未找到相关文章</view>
+      <view class="empty-title {{showEmpty ? 'empty-fade-in' : ''}}" wx:elif="{{filterMode === 'favorites'}}">暂无收藏的文章</view>
+      <view class="empty-title {{showEmpty ? 'empty-fade-in' : ''}}" wx:elif="{{filterMode === 'history'}}">暂无阅读历史</view>
+      <view class="empty-title {{showEmpty ? 'empty-fade-in' : ''}}" wx:else>该分类暂无文章</view>
+      <view class="empty-hint {{showEmpty ? 'empty-fade-in-delay' : ''}}" wx:if="{{searchKeyword}}">换个关键词试试吧</view>
+      <view class="empty-hint {{showEmpty ? 'empty-fade-in-delay' : ''}}" wx:elif="{{filterMode === 'favorites'}}">浏览文章时点击 ⭐ 即可收藏</view>
+      <view class="empty-hint {{showEmpty ? 'empty-fade-in-delay' : ''}}" wx:elif="{{filterMode === 'history'}}">阅读过的文章会自动记录在这里</view>
+      <view class="empty-hint {{showEmpty ? 'empty-fade-in-delay' : ''}}" wx:else>更多精彩内容正在路上 ✨</view>
+    </view>
+  </view>
+
+  <view class="tips-text">提示：外部链接需在小程序后台配置业务域名。</view>
+
+  <!-- 底部悬浮搜索栏（液态玻璃效果） -->
+  <view
+    class="floating-search"
+    style="{{keyboardHeight > 0 ? ('bottom: ' + keyboardHeight + 'px;') : ''}}"
+  >
+    <!-- 历史搜索标签云（键盘弹出+获焦时显示） -->
+    <view class="search-history-panel" wx:if="{{searchFocused && searchHistory.length > 0 && !searchKeyword}}">
+      <view class="search-history-header">
+        <view class="search-history-title">搜索历史</view>
+        <view class="search-history-clear" catchtap="clearSearchHistory">清空</view>
+      </view>
+      <view class="search-history-tags">
+        <view
+          wx:for="{{searchHistory}}"
+          wx:key="*this"
+          class="search-history-tag"
+          data-keyword="{{item}}"
+          catchtap="onHistoryTagTap"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="floating-search-inner">
+      <view class="search-icon-small">🔍</view>
+      <input
+        class="floating-search-input"
+        placeholder="{{showBackTop && !searchKeyword ? '回到顶部→' : '搜索文章标题、内容...'}}"
+        placeholder-class="{{showBackTop && !searchKeyword ? 'floating-search-placeholder floating-search-placeholder--right' : 'floating-search-placeholder'}}"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+        bindfocus="onSearchFocus"
+        bindblur="onSearchBlur"
+        bindkeyboardheightchange="onKeyboardHeightChange"
+        adjust-position="{{false}}"
+        confirm-type="search"
+      />
+      <view class="floating-search-clear" wx:if="{{searchKeyword}}" catchtap="clearSearch">✕</view>
+      <view class="floating-search-btn" wx:if="{{searchKeyword}}" catchtap="onSearchSubmit">
+        <view class="search-btn-arrow">→</view>
+      </view>
+      <!-- 回到顶部按钮（无搜索内容 + 滚动超过标签区时显示） -->
+      <view class="floating-search-btn floating-search-btn--top" wx:if="{{!searchKeyword && showBackTop}}" catchtap="scrollToTop">
+        <view class="search-btn-arrow">↑</view>
+      </view>
+    </view>
   </view>
 </view>

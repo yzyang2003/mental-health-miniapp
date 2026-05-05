@@ -1,8 +1,12 @@
 .quiz-page {
   min-height: 100vh;
-  padding: 128rpx var(--space-page-x);
+  padding: 0 var(--space-page-x) 48rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: linear-gradient(180deg, #f4fbf7 0%, #eef7f3 52%, #f8f4ee 100%);
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #4f46e5, #818cf8);
 }
 
 .card {

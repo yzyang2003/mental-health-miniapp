@@ -7,19 +7,15 @@ Page({
     loading: false,
     historyList: [],
     errorMessage: '',
-  },
-
-  onLoad() {
-    if (!this.ensureLogin()) {
-      return
-    }
-    this.fetchHistory()
+    capsuleTopPx: 0,
+    capsuleRightPx: 0,
   },
 
   onShow() {
     if (!this.ensureLogin()) {
       return
     }
+    this.calcCapsule()
     this.fetchHistory()
   },
 
@@ -32,6 +28,18 @@ Page({
 
   ensureLogin() {
     return ensurePageLogin()
+  },
+
+  calcCapsule() {
+    try {
+      const info = wx.getMenuButtonBoundingClientRect()
+      this.setData({
+        capsuleTopPx: info.top,
+        capsuleRightPx: wx.getSystemInfoSync().windowWidth - info.right + 4,
+      })
+    } catch (e) {
+      this.setData({ capsuleTopPx: 24, capsuleRightPx: 16 })
+    }
   },
 
   fetchHistory() {
@@ -47,7 +55,13 @@ Page({
       .then((data) => {
         const raw = data || []
         this.setData({
-          historyList: raw.map((item) => normalizeQuizResult(item)).filter(Boolean),
+          historyList: raw.map((item) => {
+            const normalized = normalizeQuizResult(item)
+            if (normalized && normalized.suggestionLines && normalized.suggestionLines.length > 3) {
+              normalized.displaySuggestions = normalized.suggestionLines.slice(0, 3)
+            }
+            return normalized
+          }).filter(Boolean),
         })
       })
       .catch((error) => {

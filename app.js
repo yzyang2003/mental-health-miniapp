@@ -22,6 +22,8 @@ App({
     this.globalData.token = token
     this.globalData.openid = openid
     this.globalData.authRedirecting = false
+    // 真机启动时检测服务器连接，失败则弹窗输入IP
+    config.checkAndPromptServer()
   },
 
   clearAuthSession(options = {}) {

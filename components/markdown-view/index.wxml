@@ -1,0 +1,15 @@
+<view class="markdown-view">
+  <block wx:for="{{nodes}}" wx:key="index">
+    <view wx:if="{{item.type === 'h1'}}" class="md-h1">{{item.content}}</view>
+    <view wx:elif="{{item.type === 'h2'}}" class="md-h2">{{item.content}}</view>
+    <view wx:elif="{{item.type === 'h3'}}" class="md-h3">{{item.content}}</view>
+    <view wx:elif="{{item.type === 'p'}}" class="md-p">{{item.content}}</view>
+    <view wx:elif="{{item.type === 'quote'}}" class="md-quote">{{item.content}}</view>
+    <view wx:elif="{{item.type === 'ul-start'}}" class="md-ul"></view>
+    <view wx:elif="{{item.type === 'ol-start'}}" class="md-ol"></view>
+    <view wx:elif="{{item.type === 'li'}}" class="md-li">{{item.content}}</view>
+    <view wx:elif="{{item.type === 'ul-end'}}" class="md-ul-end"></view>
+    <view wx:elif="{{item.type === 'ol-end'}}" class="md-ol-end"></view>
+    <view wx:elif="{{item.type === 'br'}}" class="md-br"></view>
+  </block>
+</view>

@@ -1,23 +1,90 @@
 <view class="station-page">
   <minimal-back />
-  <view class="hero-card">
-    <view class="hero-title">心理驿站</view>
-    <view class="hero-desc">这里汇集了内容陪伴、音乐疗愈和自我练习三个方向，帮助你在小程序里形成完整的支持闭环。</view>
+
+  <!-- Hero -->
+  <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+    <view class="hero-title">心灵驿站</view>
+    <view class="hero-desc">在文字与旋律中</view>
+    <view class="hero-desc">找到内心平静与力量</view>
+    <view class="hero-deco">🌿</view>
   </view>
 
-  <view class="section-card">
-    <view class="section-title">功能分区</view>
-    <view
-      wx:for="{{modules}}"
-      wx:key="key"
-      class="module-item"
-      data-path="{{item.path}}"
-      bindtap="openModule"
-    >
-      <view class="module-title">{{item.title}}</view>
-      <view class="module-desc">{{item.desc}}</view>
-      <view class="module-action">立即进入</view>
+  <!-- Article Module -->
+  <view class="module-section module-section--blue">
+    <view class="module-header" data-path="/pages/article-list/index" bindtap="onModuleTap">
+      <view class="module-icon">📖</view>
+      <view class="module-info">
+        <view class="module-title">心理文章</view>
+        <view class="module-desc">焦虑、压力、情绪调节等主题文章</view>
+      </view>
+      <view class="module-link">查看全部 ›</view>
     </view>
+    <view class="recommend-list">
+      <view
+        wx:for="{{recommendArticles}}"
+        wx:key="id"
+        class="recommend-item"
+        data-id="{{item.id}}"
+        bindtap="onArticleTap"
+      >
+        <view class="recommend-title">{{item.title}}</view>
+        <view class="recommend-meta">{{item.summary}}</view>
+        <view class="recommend-arrow">›</view>
+      </view>
+    </view>
+    <view class="module-refresh" data-type="article" catchtap="onRefresh"><text>↻ 换一批</text></view>
+  </view>
+
+  <!-- Music Module -->
+  <view class="module-section module-section--green">
+    <view class="module-header" data-path="/pages/music-list/index" bindtap="onModuleTap">
+      <view class="module-icon">🎵</view>
+      <view class="module-info">
+        <view class="module-title">音乐疗愈</view>
+        <view class="module-desc">按情绪场景筛选，点击即可播放</view>
+      </view>
+      <view class="module-link">查看全部 ›</view>
+    </view>
+    <view class="recommend-list">
+      <view
+        wx:for="{{recommendMusic}}"
+        wx:key="id"
+        class="recommend-item"
+        data-id="{{item.id}}"
+        bindtap="onMusicTap"
+      >
+        <view class="recommend-title">{{item.name}}</view>
+        <view class="recommend-badge">{{item.emotionType}}</view>
+        <view class="recommend-arrow">›</view>
+      </view>
+    </view>
+    <view class="module-refresh" data-type="music" catchtap="onRefresh"><text>↻ 换一批</text></view>
+  </view>
+
+  <!-- Self-Healing Module -->
+  <view class="module-section module-section--orange">
+    <view class="module-header" data-path="/pages/self-healing-list/index" bindtap="onModuleTap">
+      <view class="module-icon">🧘</view>
+      <view class="module-info">
+        <view class="module-title">自我疗愈</view>
+        <view class="module-desc">呼吸法、接地法、正念练习</view>
+      </view>
+      <view class="module-link">查看全部 ›</view>
+    </view>
+    <view class="recommend-list">
+      <view
+        wx:for="{{recommendExercises}}"
+        wx:key="id"
+        class="recommend-item"
+        data-id="{{item.id}}"
+        bindtap="onExerciseTap"
+      >
+        <view class="recommend-title">{{item.title}}</view>
+        <view class="recommend-duration">{{item.durationText}}</view>
+        <view class="recommend-arrow">›</view>
+      </view>
+    </view>
+    <view class="module-refresh" data-type="exercise" catchtap="onRefresh"><text>↻ 换一批</text></view>
   </view>
 
   <bottom-nav current="station"></bottom-nav>

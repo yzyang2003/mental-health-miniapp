@@ -1,40 +1,105 @@
 <view class="detail-page">
   <minimal-back />
 
-  <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
+  <!-- ==================== 庆祝完成页面 ==================== -->
+  <view wx:if="{{showCelebration}}" class="celebration-page">
+    <view class="celebration-content">
+      <view class="celebration-icon">🎉</view>
+      <view class="celebration-title">练习完成！</view>
+      <view class="celebration-subtitle">你完成了「{{detail.title}}」</view>
 
-  <view wx:if="{{detail}}" class="detail-card">
-    <view class="detail-title">{{detail.title}}</view>
-    <view class="detail-meta">
-      <text class="meta-pill">{{detail.categoryName}}</text>
-      <text class="meta-pill ghost">{{detail.durationText}}</text>
-    </view>
-
-    <view class="detail-desc">{{detail.shortDesc}}</view>
-
-    <view class="principle-card">
-      <view class="principle-header" bindtap="togglePrinciple">
-        <view class="principle-title">原理说明</view>
-        <view class="principle-toggle">{{principleExpanded ? '收起' : '展开'}}</view>
+      <view class="celebration-stats">
+        <view class="celebration-stat">
+          <view class="celebration-stat-value">{{detail.steps.length}}</view>
+          <view class="celebration-stat-label">完成步骤</view>
+        </view>
+        <view class="celebration-stat-divider"></view>
+        <view class="celebration-stat">
+          <view class="celebration-stat-value">{{totalTime > 0 ? totalTime : '-'}}</view>
+          <view class="celebration-stat-label">用时(秒)</view>
+        </view>
       </view>
-      <view wx:if="{{principleExpanded}}" class="principle-body">{{detail.principle}}</view>
+
+      <view class="celebration-message">
+        每一次练习都是对自己的温柔关怀 💚
+      </view>
+
+      <view class="celebration-actions">
+        <button class="celebration-btn primary" bindtap="onCelebrationBack">返回列表</button>
+        <button class="celebration-btn ghost" bindtap="onCelebrationRestart">再来一次</button>
+      </view>
     </view>
 
+    <!-- 彩带效果 -->
+    <view class="confetti-container">
+      <view wx:for="{{[1,2,3,4,5,6,7,8]}}" wx:key="*this" class="confetti confetti-{{item}}"></view>
+    </view>
+  </view>
+
+  <!-- ==================== 主要内容 ==================== -->
+  <view wx:if="{{detail && !showCelebration}}">
+    <!-- 骨架屏 -->
+    <view wx:if="{{loading}}" class="skeleton-wrap">
+      <view class="skeleton-hero skeleton-shine"></view>
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line-title skeleton-shine"></view>
+        <view class="skeleton-line skeleton-line-desc skeleton-shine"></view>
+        <view class="skeleton-line skeleton-line-short skeleton-shine"></view>
+      </view>
+    </view>
+
+    <!-- Hero 卡片 -->
+    <view class="hero-card" style="margin-top: {{capsuleTopPx}}px; padding-right: {{capsuleRightPx}}px;">
+      <view class="hero-title">自我疗愈</view>
+      <view class="hero-desc">跟随步骤完成一次小练习</view>
+      <view class="hero-desc">给自己一点温柔的关怀</view>
+      <view class="hero-deco">🧘</view>
+    </view>
+
+    <!-- 练习信息卡 -->
+    <view class="info-card">
+      <view class="info-title">{{detail.title}}</view>
+      <view class="info-meta">
+        <view class="meta-pill">{{detail.categoryName}}</view>
+        <view class="meta-pill ghost" wx:if="{{detail.durationText}}">⏱ {{detail.durationText}}</view>
+        <view class="meta-pill ghost">📋 {{detail.stepCount}} 步</view>
+      </view>
+      <view class="info-desc">{{detail.shortDesc}}</view>
+
+      <!-- 原理说明 -->
+      <view class="principle-card" wx:if="{{detail.principle}}">
+        <view class="principle-header" bindtap="togglePrinciple">
+          <view class="principle-title-row">
+            <view class="principle-icon">💡</view>
+            <view class="principle-title">原理说明</view>
+          </view>
+          <view class="principle-toggle-wrap">
+            <view class="principle-arrow {{principleExpanded ? 'principle-arrow-expanded' : ''}}">›</view>
+          </view>
+        </view>
+        <view class="principle-body-wrap {{principleExpanded ? 'principle-body-wrap-expanded' : ''}}">
+          <view class="principle-body">{{detail.principle}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 步骤进度卡 -->
     <view class="step-card">
       <view class="step-header">
         <view class="step-title">练习步骤</view>
         <view class="step-count">步骤 {{activeStepIndex + 1}} / {{detail.steps.length}}</view>
       </view>
 
-      <progress
-        wx:if="{{detail.steps.length}}"
-        class="step-progress"
-        percent="{{progressPercent}}"
-        stroke-width="6"
-        activeColor="#6eaa8a"
-        backgroundColor="#e5e7eb"
-      />
+      <!-- 圆形进度环 -->
+      <view class="progress-ring-wrap">
+        <view class="progress-ring">
+          <view class="progress-ring-bg"></view>
+          <view class="progress-ring-fill" style="--progress: {{progressPercent}};"></view>
+          <view class="progress-ring-text">{{progressPercent}}%</view>
+        </view>
+      </view>
 
+      <!-- 步骤标签 -->
       <scroll-view class="step-tabs" scroll-x enable-flex>
         <view
           wx:for="{{stepTabs}}"
@@ -43,50 +108,66 @@
           data-index="{{item.index}}"
           bindtap="selectStep"
         >
-          {{item.label}}
+          <text wx:if="{{item.isDone}}">✓</text>
+          <text wx:else>{{item.label}}</text>
         </view>
       </scroll-view>
 
-      <view wx:if="{{detail.steps && detail.steps.length}}" class="step-item">
-        <view class="step-index">步骤 {{activeStepIndex + 1}}</view>
+      <!-- 步骤内容 -->
+      <view class="step-content">
+        <view class="step-index-badge">步骤 {{activeStepIndex + 1}}</view>
         <view class="step-name">{{detail.steps[activeStepIndex].title || '未命名步骤'}}</view>
         <view class="step-desc">{{detail.steps[activeStepIndex].description || '暂无描述'}}</view>
+
+        <!-- 步骤计时器 -->
+        <view class="step-timer {{timerRunning ? 'step-timer-active' : ''}}" bindtap="toggleTimer">
+          <view class="timer-icon">{{timerRunning ? '⏸' : '▶'}}</view>
+          <view class="timer-display">{{timerDisplay}}</view>
+          <view class="timer-hint">{{timerRunning ? '点击暂停' : '点击开始计时'}}</view>
+        </view>
       </view>
 
+      <!-- 操作按钮 -->
       <view class="action-row">
         <button
-          class="action-btn mini-ghost-btn"
+          class="action-btn action-btn-ghost"
           size="mini"
           disabled="{{activeStepIndex === 0}}"
           bindtap="prevStep"
-        >上一步</button>
+        >‹ 上一步</button>
 
         <button
-          class="action-btn mini-action-btn"
+          class="action-btn action-btn-primary"
           size="mini"
           disabled="{{finishStepDisabled}}"
           bindtap="markStepDone"
-        >完成本步</button>
+        >✓ 完成本步</button>
 
         <button
           wx:if="{{actionSlot3 === 'next'}}"
-          class="action-btn mini-ghost-btn"
+          class="action-btn action-btn-ghost"
           size="mini"
           disabled="{{nextDisabled}}"
           bindtap="nextStep"
-        >下一步</button>
+        >下一步 ›</button>
 
         <button
           wx:else
-          class="action-btn mini-action-btn primary-strong"
+          class="action-btn action-btn-success"
           size="mini"
           bindtap="completeExercise"
-        >完成练习</button>
-
-        <button class="action-btn mini-ghost-btn" size="mini" bindtap="restartPractice">重新练习</button>
+        >🎉 完成练习</button>
       </view>
 
-      <view wx:if="{{completionMessage}}" class="completion-box">{{completionMessage}}</view>
+      <button class="restart-btn" bindtap="restartPractice">↺ 重新练习</button>
+
+      <!-- 提示消息 -->
+      <view wx:if="{{completionMessage}}" class="completion-box">
+        <text class="completion-text">{{completionMessage}}</text>
+      </view>
     </view>
   </view>
+
+  <!-- 错误状态 -->
+  <view wx:if="{{errorMessage}}" class="error-box">{{errorMessage}}</view>
 </view>

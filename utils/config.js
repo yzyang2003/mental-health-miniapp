@@ -63,10 +63,45 @@ function buildBaseUrl() {
   return `http://${host}:${PORT}`
 }
 
+/**
+ * 检测后端是否可达，不可达时弹窗让用户输入IP
+ */
+function checkAndPromptServer() {
+  if (!isRealMobileDevice()) return
+  wx.request({
+    url: buildBaseUrl() + '/api/health',
+    method: 'GET',
+    timeout: 5000,
+    fail() {
+      wx.showModal({
+        title: '服务器连接失败',
+        content: '请输入服务器电脑的IP地址',
+        editable: true,
+        placeholderText: '例: 10.63.237.225',
+        success(res) {
+          if (res.confirm && res.content && res.content.trim()) {
+            const ip = res.content.trim()
+            try {
+              wx.setStorageSync(STORAGE_BASE_URL_KEY, 'http://' + ip + ':' + PORT)
+            } catch (e) { /* ignore */ }
+            wx.showModal({
+              title: 'IP已保存',
+              content: '需要重启小程序才能生效，点击确定重启',
+              showCancel: false,
+              success() { wx.reLaunch({ url: '/pages/station/index' }) }
+            })
+          }
+        }
+      })
+    }
+  })
+}
+
 module.exports = {
   LAN_HOST,
   PORT,
   STORAGE_BASE_URL_KEY,
   getBaseUrl: buildBaseUrl,
   baseUrl: buildBaseUrl(),
+  checkAndPromptServer,
 }

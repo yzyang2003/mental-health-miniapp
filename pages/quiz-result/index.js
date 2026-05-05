@@ -2,12 +2,75 @@ const { request, formatRequestError } = require('../../utils/request')
 const { normalizeQuizResult } = require('../../utils/quizNormalize')
 const { ensurePageLogin } = require('../../utils/auth')
 
+// 得分等级配置
+const LEVEL_CONFIG = {
+  PHQ9_DEMO: [
+    { max: 4, level: 'normal', label: '正常', icon: '🟢', color: '#10b981', bg: '#ecfdf5' },
+    { max: 9, level: 'mild', label: '轻度', icon: '🟡', color: '#eab308', bg: '#fefce8' },
+    { max: 14, level: 'moderate-mild', label: '中轻度', icon: '🟠', color: '#f59e0b', bg: '#fffbeb' },
+    { max: 19, level: 'moderate', label: '中度', icon: '🟠', color: '#ea580c', bg: '#fff7ed' },
+    { max: 24, level: 'moderate-severe', label: '中重度', icon: '🔴', color: '#dc2626', bg: '#fef2f2' },
+    { max: Infinity, level: 'severe', label: '重度', icon: '🔴', color: '#b91c1c', bg: '#fef2f2' },
+  ],
+  GAD7_DEMO: [
+    { max: 4, level: 'normal', label: '正常', icon: '🟢', color: '#10b981', bg: '#ecfdf5' },
+    { max: 7, level: 'mild', label: '轻度', icon: '🟡', color: '#eab308', bg: '#fefce8' },
+    { max: 11, level: 'moderate-mild', label: '中轻度', icon: '🟠', color: '#f59e0b', bg: '#fffbeb' },
+    { max: 14, level: 'moderate', label: '中度', icon: '🟠', color: '#ea580c', bg: '#fff7ed' },
+    { max: 17, level: 'moderate-severe', label: '中重度', icon: '🔴', color: '#dc2626', bg: '#fef2f2' },
+    { max: Infinity, level: 'severe', label: '重度', icon: '🔴', color: '#b91c1c', bg: '#fef2f2' },
+  ],
+  SCL90_DEMO: [
+    { max: 160, level: 'normal', label: '正常', icon: '🟢', color: '#10b981', bg: '#ecfdf5' },
+    { max: 200, level: 'mild', label: '轻度', icon: '🟡', color: '#eab308', bg: '#fefce8' },
+    { max: 240, level: 'moderate-mild', label: '中轻度', icon: '🟠', color: '#f59e0b', bg: '#fffbeb' },
+    { max: 270, level: 'moderate', label: '中度', icon: '🟠', color: '#ea580c', bg: '#fff7ed' },
+    { max: 300, level: 'moderate-severe', label: '中重度', icon: '🔴', color: '#dc2626', bg: '#fef2f2' },
+    { max: Infinity, level: 'severe', label: '重度', icon: '🔴', color: '#b91c1c', bg: '#fef2f2' },
+  ],
+  SDS_DEMO: [
+    { max: 33, level: 'normal', label: '正常', icon: '🟢', color: '#10b981', bg: '#ecfdf5' },
+    { max: 45, level: 'mild', label: '轻度', icon: '🟡', color: '#eab308', bg: '#fefce8' },
+    { max: 55, level: 'moderate-mild', label: '中轻度', icon: '🟠', color: '#f59e0b', bg: '#fffbeb' },
+    { max: 66, level: 'moderate', label: '中度', icon: '🟠', color: '#ea580c', bg: '#fff7ed' },
+    { max: 75, level: 'moderate-severe', label: '中重度', icon: '🔴', color: '#dc2626', bg: '#fef2f2' },
+    { max: Infinity, level: 'severe', label: '重度', icon: '🔴', color: '#b91c1c', bg: '#fef2f2' },
+  ],
+  SAS_DEMO: [
+    { max: 33, level: 'normal', label: '正常', icon: '🟢', color: '#10b981', bg: '#ecfdf5' },
+    { max: 45, level: 'mild', label: '轻度', icon: '🟡', color: '#eab308', bg: '#fefce8' },
+    { max: 55, level: 'moderate-mild', label: '中轻度', icon: '🟠', color: '#f59e0b', bg: '#fffbeb' },
+    { max: 66, level: 'moderate', label: '中度', icon: '🟠', color: '#ea580c', bg: '#fff7ed' },
+    { max: 75, level: 'moderate-severe', label: '中重度', icon: '🔴', color: '#dc2626', bg: '#fef2f2' },
+    { max: Infinity, level: 'severe', label: '重度', icon: '🔴', color: '#b91c1c', bg: '#fef2f2' },
+  ],
+}
+
+function getScoreLevel(type, score) {
+  const config = LEVEL_CONFIG[type]
+  if (!config) {
+    return { level: 'normal', label: '', icon: '', color: '#6b7280', bg: '#f9fafb' }
+  }
+  for (const item of config) {
+    if (score <= item.max) {
+      return item
+    }
+  }
+  return config[config.length - 1]
+}
+
 Page({
   data: {
     resultId: 0,
     result: null,
+    loading: false,
+    errorMessage: '',
     retryingAiGuidance: false,
     retryCooldownSec: 0,
+    capsuleTopPx: 0,
+    capsuleRightPx: 0,
+    // 得分等级
+    scoreLevel: null,
   },
   retryCooldownTimer: null,
   aiPollingTimer: null,
@@ -15,6 +78,8 @@ Page({
   maxAiPollingAttempts: 40,
   _resultDetailPromise: null,
   _resultDetailId: 0,
+  _capsuleCached: false,
+  _wasPollingActive: false,
 
   refreshResultFromGlobal(expectedResultId = 0, options = {}) {
     const { showMissingToast = true } = options
@@ -22,19 +87,21 @@ Page({
     const result = normalizeQuizResult(raw)
     if (!result || (expectedResultId && Number(result.id || 0) !== Number(expectedResultId))) {
       if (!showMissingToast) {
-        this.setData({ result: null })
+        this.setData({ result: null, scoreLevel: null })
         return null
       }
       wx.showToast({
         title: '暂无测评结果',
         icon: 'none',
       })
-      this.setData({ result: null })
+      this.setData({ result: null, scoreLevel: null })
       return null
     }
+    const scoreLevel = getScoreLevel(result.questionnaireType, result.score)
     this.setData({
       resultId: Number(result.id || expectedResultId || 0),
       result,
+      scoreLevel,
     })
     return result
   },
@@ -47,6 +114,9 @@ Page({
     if (this._resultDetailPromise && this._resultDetailId === resultId) {
       return this._resultDetailPromise
     }
+    if (!silent) {
+      this.setData({ loading: true, errorMessage: '' })
+    }
     const requestPromise = request({
       url: `/api/consult/quiz/result/${resultId}`,
       method: 'GET',
@@ -55,21 +125,26 @@ Page({
       .then((data) => {
         const normalized = normalizeQuizResult(data)
         if (!normalized) {
+          if (!silent) {
+            this.setData({ errorMessage: '暂无测评结果' })
+          }
           return null
         }
         getApp().globalData.latestQuizResult = normalized
+        const scoreLevel = getScoreLevel(normalized.questionnaireType, normalized.score)
         this.setData({
           resultId: Number(normalized.id || resultId || 0),
           result: normalized,
+          scoreLevel,
+          loading: false,
         })
         return normalized
       })
       .catch((error) => {
         if (!silent) {
-          wx.showToast({
-            title: formatRequestError(error, '获取测评结果失败'),
-            icon: 'none',
-            duration: 2500,
+          this.setData({
+            errorMessage: formatRequestError(error, '获取测评结果失败'),
+            loading: false,
           })
         }
         return null
@@ -121,12 +196,33 @@ Page({
     if (!ensurePageLogin()) {
       return
     }
+    // 胶囊位置缓存：只计算一次
+    if (!this._capsuleCached) {
+      this.calcCapsule()
+      this._capsuleCached = true
+    }
     this.ensureResultLoaded({
       showMissingToast: !this.data.result,
       silentFetch: !!this.data.result,
     }).finally(() => {
-      this.startAiGuidancePollingIfNeeded()
+      // AI 轮询恢复：如果之前在轮询且有结果，恢复轮询
+      if (this._wasPollingActive && this.data.result) {
+        this.startAiGuidancePollingIfNeeded()
+      }
+      this._wasPollingActive = false
     })
+  },
+
+  calcCapsule() {
+    try {
+      const info = wx.getMenuButtonBoundingClientRect()
+      this.setData({
+        capsuleTopPx: info.top,
+        capsuleRightPx: wx.getSystemInfoSync().windowWidth - info.right + 4,
+      })
+    } catch (e) {
+      this.setData({ capsuleTopPx: 24, capsuleRightPx: 16 })
+    }
   },
 
   onUnload() {
@@ -136,6 +232,8 @@ Page({
 
   onHide() {
     this.clearRetryCooldownTimer()
+    // AI 轮询暂停：记录状态并暂停
+    this._wasPollingActive = !!this.aiPollingTimer
     this.clearAiGuidancePolling()
   },
 
@@ -252,9 +350,11 @@ Page({
           return
         }
         getApp().globalData.latestQuizResult = normalized
+        const scoreLevel = getScoreLevel(normalized.questionnaireType, normalized.score)
         this.setData({
           resultId: Number(normalized.id || id || 0),
           result: normalized,
+          scoreLevel,
         })
         if (normalized.aiGuidance) {
           this.clearAiGuidancePolling()
