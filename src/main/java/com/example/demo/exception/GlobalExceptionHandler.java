@@ -22,9 +22,13 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result<Void> handleBusinessException(BusinessException ex) {
-        return Result.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+    public ResponseEntity<Result<Void>> handleBusinessException(BusinessException ex) {
+        int code = ex.getCode();
+        HttpStatus status = HttpStatus.resolve(code);
+        if (status == null) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return ResponseEntity.status(status).body(Result.error(code, ex.getMessage()));
     }
 
     /**

@@ -79,12 +79,12 @@ public class MusicServiceImpl implements MusicService {
     private MusicVO toMusicVO(Music music) {
         MusicVO musicVO = new MusicVO();
         musicVO.setId(music.getId());
-        musicVO.setSongName(music.getSongName());
-        musicVO.setSinger(music.getSinger());
-        musicVO.setCover(music.getCover());
+        musicVO.setName(music.getName());
+        musicVO.setDescription(music.getDescription());
+        musicVO.setCoverImage(music.getCoverImage());
+        musicVO.setShareUrl(music.getShareUrl());
         musicVO.setEmotionType(music.getEmotionType());
-        musicVO.setUrl(music.getUrl());
-        musicVO.setDuration(music.getDuration());
+        musicVO.setDurationText(music.getDurationText());
         musicVO.setPlayCount(music.getPlayCount() == null ? 0 : music.getPlayCount());
         musicVO.setCreateTime(music.getCreateTime());
         return musicVO;

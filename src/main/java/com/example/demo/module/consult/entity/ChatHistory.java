@@ -27,6 +27,9 @@ public class ChatHistory {
     @TableField("content")
     private String content;
 
+    @TableField("emotion")
+    private String emotion;
+
     @TableField("create_time")
     private LocalDateTime createTime;
 }

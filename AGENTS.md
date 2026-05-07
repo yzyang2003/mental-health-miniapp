@@ -1,173 +1,190 @@
 # AGENTS.md
 
-## 项目概述
+## Project Overview
 
-校园心理健康咨询微信小程序 + Spring Boot 3 后端（毕业设计）。
+Campus mental health counseling WeChat mini-program + Spring Boot 3 backend (graduation project).
 
-## 技术栈
+- **Frontend**: WeChat mini-program native framework (WXML/WXSS/JavaScript) — no npm, no package.json
+- **Backend**: Spring Boot 3.3.5 + MyBatis-Plus 3.5.7 + MySQL 8 + JWT (jjwt 0.12.6) + springdoc-openapi
+- **Java**: 17 (pom.xml `<java.version>17</java.version>`)
+- **AI**: MiMo-V2.5 via external API (configurable), voice ASR/TTS via `mimo.api.*` config
 
-- **前端**: 微信小程序原生框架 (WXML/WXSS/JavaScript)
-- **后端**: Spring Boot 3.3.5 + MyBatis-Plus + MySQL 8 + JWT (jjwt 0.12.6) + springdoc-openapi
-- **Java**: JDK 17
-
-## 核心命令
+## Key Commands
 
 ```bash
-# 启动后端（需先启动 MySQL）
-mvn spring-boot:run
+# Maven wrapper is NOT at the standard location. Use this path:
+./.tools/apache-maven-3.9.9/bin/mvn spring-boot:run   # start backend (requires MySQL running)
+./.tools/apache-maven-3.9.9/bin/mvn test               # run all tests (146 tests, ~10s)
+./.tools/apache-maven-3.9.9/bin/mvn compile             # compile only (faster check)
 
-# 运行测试
-mvn test
-
-# 后端运行端口: 8080
-# 接口文档: http://localhost:8080/swagger-ui.html
+# There is no standard mvnw. Do NOT use 'mvn' directly unless it's on PATH.
+# Backend port: 8080
+# Swagger UI: http://localhost:8080/swagger-ui.html
 ```
 
-## 项目结构
+## Project Structure
 
 ```
-├── pages/                        # 微信小程序页面（19个）
-│   ├── station/index             # 驿站首页（推荐卡片入口）
-│   ├── music-list/index          # 音乐疗愈（歌单列表）
-│   ├── self-healing-list/index   # 自我疗愈（练习列表）
-│   ├── self-healing-detail/index # 自我疗愈详情（计时器/进度环/庆祝）
-│   ├── article-list/index        # 心理文章列表
-│   ├── article-detail/index      # 心理文章详情
-│   ├── consult/index             # 咨询中心（AI+量表入口）
-│   ├── topic-list/index          # 树洞社区
-│   ├── topic-detail/index        # 帖子详情+回复
-│   ├── ai-chat/index             # AI 咨询聊天
-│   ├── quiz-list/index           # 量表列表
-│   ├── quiz-detail/index         # 量表答题
-│   ├── quiz-result/index         # 测评结果
-│   ├── login/index               # 微信登录
-│   ├── profile/index             # 个人中心
-│   ├── notice-center/index       # 通知中心
-│   ├── my-quiz-history/index     # 我的测评历史
-│   └── webview/index             # webview（未备案不可用）
-├── components/                   # 公共组件
-│   ├── bottom-nav/               # 底部导航栏
-│   ├── chat-avatar/              # 聊天头像
-│   └── minimal-back/             # 极简返回按钮
-├── utils/                        # 前端工具
-│   ├── config.js                 # API 地址配置
-│   ├── request.js                # 请求封装（自动注入 JWT）
-│   ├── auth.js                   # 认证工具（ensurePageLogin）
-│   ├── selfHealingCatalog.js     # 疗愈工具（适配器+完成状态）
-│   ├── stationNormalize.js       # 驿站数据标准化
-│   ├── quizCatalog.js            # 量表目录
-│   ├── quizNormalize.js          # 量表数据标准化
-│   └── topic.js                  # 树洞工具
+├── pages/                     # WeChat mini-program pages (17 pages)
+│   ├── ai-chat/index          # AI counselor chat (typewriter, voice, streaming)
+│   ├── station/index          # Home station (article/music/healing entry)
+│   ├── consult/index          # Consultation center (AI + quiz entry)
+│   ├── quiz-list/detail/result # Psychological quizzes
+│   ├── topic-list/detail      # Anonymous tree-hole community
+│   ├── self-healing-list/detail # Self-healing exercises (timer, progress ring)
+│   ├── article-list/detail    # Mental health articles
+│   ├── music-list             # Music therapy playlists
+│   ├── login/profile          # Auth and profile
+│   └── notice-center/my-quiz-history/webview
+├── components/                # Shared components
+│   ├── bottom-nav/            # Tab bar
+│   ├── chat-avatar/           # Chat avatar
+│   ├── markdown-view/         # Markdown renderer (rich-text)
+│   ├── minimal-back/          # Back button
+│   └── skeleton/              # Loading skeleton
+├── utils/                     # Frontend utilities (all plain JS, no build step)
+│   ├── config.js              # API base URL (simulator/real device logic)
+│   ├── request.js             # HTTP wrapper with auto JWT injection
+│   ├── auth.js                # ensurePageLogin()
+│   ├── chat-stream.js         # Stream/SSE handling for AI chat
+│   ├── chat-typewriter.js     # Typewriter effect for assistant replies
+│   ├── chat-scroll.js         # Auto-scroll management
+│   ├── chat-state.js          # Page state save/restore
+│   ├── markdown-parser.js     # Markdown → HTML (<strong>/<em>/<code>)
+│   └── quizCatalog.js, quizNormalize.js, selfHealingCatalog.js, etc.
 ├── src/main/java/com/example/demo/
-│   ├── DemoApplication.java      # 主入口 (@MapperScan 已配置)
-│   ├── controller/               # REST 控制器
-│   │   ├── LoginController.java  # 登录（code2session + JWT）
-│   │   ├── HealthController.java # 健康检查
-│   │   ├── UserController.java   # 用户信息
-│   │   ├── station/              # 驿站内容（文章/音乐/歌单/疗愈）
-│   │   ├── topic/                # 树洞帖子
-│   │   └── reply/                # 帖子回复
-│   ├── module/consult/           # AI 咨询模块（独立子系统）
-│   │   ├── controller/           # 咨询专用控制器
-│   │   ├── client/               # AI API 客户端
-│   │   ├── inference/            # 推理逻辑
-│   │   ├── safety/               # 安全检测
-│   │   ├── dto/                  # 咨询专用 DTO
-│   │   ├── entity/               # 咨询专用实体
-│   │   ├── mapper/               # 咨询专用 Mapper
-│   │   └── service/              # 咨询专用 Service
-│   ├── service/                  # 业务逻辑
-│   ├── mapper/                   # MyBatis-Plus Mapper
-│   ├── entity/                   # 实体类
-│   ├── dto/                      # 数据传输对象
-│   ├── config/                   # 配置类（WebConfig等）
-│   ├── interceptor/              # JWT 拦截器
-│   └── common/                   # 公共类（统一响应等）
-├── sql/                          # 数据库脚本（30个）
-│   ├── graduation_design.sql     # 主建表脚本
-│   ├── music_playlist.sql        # 歌单表
-│   ├── self_healing.sql          # 自我疗愈表
-│   └── station_seed_data.sql     # 驿站种子数据
-└── pom.xml                       # Maven 配置
+│   ├── DemoApplication.java   # Entry point (@MapperScan configured)
+│   ├── controller/            # REST controllers (Health, Login, User, station/, topic/, reply/)
+│   ├── module/consult/        # AI consult module (SELF-CONTAINED — own entity/mapper/service)
+│   │   ├── controller/        # ConsultChatController, ConsultQuizController
+│   │   ├── client/            # OpenAiCompletionClient (external AI API)
+│   │   ├── inference/         # OpenAiInferenceService
+│   │   ├── safety/            # ContentSafetyService, DefaultContentSafetyService, CrisisEventLogService
+│   │   ├── emotion/           # EmotionRecognitionService, CrisisLevelAssessmentService, EmotionResult
+│   │   ├── skills/            # Counseling skills (BasicCounseling, ProfessionalCounseling, CampusScenario,
+│   │   │                      #   CrisisIntervention, QuizRecommendation, TherapyRecommendation, ResourceSkills)
+│   │   ├── dto/               # ChatRequest, ChatResponse, ChatHistoryVO, Quiz DTOs
+│   │   ├── entity/            # ChatHistory, Questionnaire, Question, QuizResult
+│   │   ├── mapper/            # MyBatis-Plus mappers
+│   │   └── service/           # AIChatService, VoiceService, RateLimitService, QuizService
+│   ├── service/               # Main app services (User, Topic, Reply, Article, Music, SelfHealing)
+│   ├── mapper/                # Main app mappers
+│   ├── entity/                # Main app entities
+│   ├── config/                # WebConfig, etc.
+│   ├── interceptor/           # JWT interceptor
+│   └── common/                # Unified response wrapper
+├── sql/                       # Database scripts (~32 files, manual execution — NO migration tool)
+│   ├── graduation_design.sql  # Main schema + seed data
+│   └── *.sql                  # Incremental changes (run manually)
+└── pom.xml
 ```
 
-## 环境配置
+## Environment Setup
 
-1. 复制 `src/main/resources/application-local.yml.example` → `application-local.yml`
-2. 填写: MySQL 密码、JWT 密钥、微信 appid/secret、AI 接口密钥
-3. `application-local.yml` 已被 gitignore，切勿提交
+1. Copy `src/main/resources/application-local.yml.example` → `application-local.yml`
+2. Fill in: MySQL password, JWT secret, WeChat appid/secret, AI API key, MiMo API key
+3. `application-local.yml` is gitignored — never commit
 
-## 前端 API 地址配置
+**Critical**: `application.yml` uses `spring.config.import` to load `application-local.yml` from classpath. The local file overrides `SPRING_DATASOURCE_*` env vars.
 
-`utils/config.js` 优先级:
-1. `FORCE_BASE_URL`（硬编码，真机调试用）
-2. `wx.getStorageSync('apiBaseUrlOverride')`（通过微信控制台设置）
-3. 模拟器 → `127.0.0.1:8080`；真机 → `LAN_HOST:8080`
+## Frontend API Address
 
-真机联调时需将 `LAN_HOST` 改为你电脑的局域网 IPv4 地址。
+`utils/config.js` resolution order:
+1. `FORCE_BASE_URL` (hardcoded override)
+2. `wx.getStorageSync('apiBaseUrlOverride')` (runtime override)
+3. Simulator → `127.0.0.1:8080` | Real device → `LAN_HOST:8080`
 
-## 测试模式
+Real device debugging requires updating `LAN_HOST` to your current LAN IPv4. The app auto-prompts for IP if backend is unreachable on real device.
 
-测试使用独立 MockMvc（不加载 Spring 上下文）:
+## Testing
+
+```bash
+./.tools/apache-maven-3.9.9/bin/mvn test
+```
+
+Tests use **standalone MockMvc** (no Spring context loaded):
 ```java
 MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 ```
 
-## 安全说明
+Test classes live under `src/test/java/com/example/demo/module/consult/`:
+- `controller/` — ConsultChatControllerStandaloneTest, HealthControllerTest, ArticleControllerTest
+- `emotion/` — EmotionRecognitionServiceTest, CrisisLevelAssessmentServiceTest
+- `safety/` — DefaultContentSafetyServiceTest
+- `skills/` — QuizRecommendationServiceTest, TherapyRecommendationServiceTest, CampusScenarioSkillsTest, CrisisInterventionServiceTest
 
-- `project.private.config.json` - 微信开发者工具私有配置（已 gitignore）
-- `uploads/` - 用户上传的图片（已 gitignore）
-- JWT 拦截器保护除 `/api/health` 和 `/api/login` 外的所有接口
-- Swagger UI 白名单: `/swagger-ui/**`, `/v3/api-docs/**`
+## Architecture — AI Consult Module
 
-## 数据库
+The `module/consult/` is a **self-contained sub-system** with its own entity/mapper/service layer. It does NOT share mappers/entities with the main app.
 
-- 数据库名: `graduation_design` (utf8mb4)
-- 主建表脚本: `sql/graduation_design.sql`
-- 增量迁移: `sql/` 目录下各脚本（手动执行，无迁移工具）
+**Request flow**:
+1. `ConsultChatController` receives message → `RateLimitService` check → `AIChatService.sendMessage()`
+2. `AIChatServiceImpl` orchestrates: content safety → emotion recognition → crisis check → AI API call → response
+3. `OpenAiCompletionClient` calls external AI API (configurable via `ai.api.*`)
+4. `VoiceService` handles ASR/TTS via MiMo API (`mimo.api.*`)
 
-### 核心实体
+**Key services**:
+- `AIChatServiceImpl` — Core chat logic, history management, system prompt construction
+- `ContentSafetyService` — Keyword-based crisis/unsafe detection (12 crisis keywords)
+- `EmotionRecognitionService` — 7-type emotion detection (happy, sad, anxious, angry, fearful, neutral, surprised)
+- `CrisisInterventionService` — 4-level crisis response with hotlines
+- `QuizRecommendationService` — Maps emotions to DB quizzes (IDs 3=PHQ-9, 4=GAD-7, 7=SCL-90, 8=SDS, 9=SAS)
+- `TherapyRecommendationService` — Maps emotions to self-healing exercises (IDs 1-5)
+- `VoiceService` — MiMo ASR/TTS integration (requires `mimo.api.key` config)
 
-| 实体 | 表 | 说明 |
-|------|-----|------|
-| User | user | 用户（openid/昵称/头像） |
-| Article | article | 心理文章（markdown内容） |
-| Music | music | 音乐资源 |
-| MusicPlaylist | music_playlist | 歌单（含歌曲ID数组） |
-| SelfHealing | self_healing | 自我疗愈练习 |
-| Topic | topic | 树洞帖子 |
-| Reply | reply | 帖子回复 |
+**AI parameters**: max_tokens=700, temperature=0.4, connect_timeout=5s, read_timeout=30s, max_retry=1
 
-## 前端 CSS 架构
+## Database
 
-`app.wxss` 定义全局样式：
-- CSS 变量: `--space-page-x`, `--space-card-padding`, `--space-block-gap` (均为 15rpx)
-- `.card` - 通用卡片（白色背景+圆角+阴影）
-- `.hero-card` - 统一 Hero 卡片（渐变背景+边框+阴影）
-- `.hero-title` / `.hero-desc` - Hero 卡片标题/描述（居中+文字阴影）
+- Name: `graduation_design` (utf8mb4)
+- Schema: `sql/graduation_design.sql`
+- Migrations: manual — add incremental `.sql` files in `sql/`
+- **No migration tool** (no Flyway/Liquibase)
 
-各页面只需覆盖渐变色，例如：
-```css
-.hero-card { background: linear-gradient(135deg, #6eaa8a, #82b79a); }
+## WeChat Mini-Program Gotchas
+
+- `border-radius` creates a clipping context — `overflow: visible` may not work
+- `<button>` has default padding — use `::after { border: none }` + `display: flex` for centering
+- `web-view` component unavailable for unregistered (未备案) mini-programs
+- Real device debugging requires phone and computer on same LAN
+- `app.json` has `permission.scope.record` for voice recording
+
+## Security
+
+- JWT interceptor protects all endpoints except `/api/health`, `/api/login`, `/swagger-ui/**`, `/v3/api-docs/**`
+- `project.private.config.json` — WeChat dev tool private config (gitignored)
+- `uploads/` — user uploads (gitignored)
+- `application-local.yml` — local secrets (gitignored)
+
+## Git
+
+- Remote: `https://github.com/yzyang2003/mental-health-miniapp.git`
+- Branch: `main`
+- Commit style: conventional-ish, Chinese descriptions (e.g. `feat: ...`, `fix: ...`, `docs: ...`)
+- Latest commit: `5b52c11 feat: 树洞演示数据 + 修复匿名回复和输入框遮挡问题`
+
+## Conventions
+
+- Backend: Lombok `@Data`, `@RequiredArgsConstructor`, `@Slf4j` used pervasively
+- Frontend: plain JS modules with `module.exports`, no build step, no TypeScript
+- Chat frontend split into modules: `chat-stream.js`, `chat-typewriter.js`, `chat-scroll.js`, `chat-state.js`
+- CSS: global variables in `app.wxss` (`--space-page-x`, `--space-card-padding`, etc.)
+- Consult module has its own `AGENTS.md` at `src/main/java/com/example/demo/module/consult/AGENTS.md`
+
+## Admin Management System
+
+Vue 3 + Vite 5 + Element Plus admin panel at `admin/`. Run with:
+```bash
+cd admin && npm run dev    # dev server on port 5173
+cd admin && npm run build  # production build
 ```
 
-## 微信小程序注意事项
+Backend admin endpoints at `/api/admin/*` require JWT with `role=admin`. Login: `POST /api/admin/login` (username/password).
 
-- `border-radius` 会创建裁切上下文，`overflow:visible` 不一定生效
-- `<button>` 组件有默认内边距，需用 `::after { border: none }` + `display:flex` 居中
-- 未备案小程序不可使用 `web-view` 组件
-- 真机调试需手机与电脑在同一局域网
+Admin frontend pages: Dashboard, Article, Music, Healing, Topic, Quiz, User, Chat, Notice, AI Config.
 
-## AI 咨询模块
+Dashboard has 6 charts: user trend, daily active, quiz trend, quiz type usage, article stats, emotion distribution.
 
-`module/consult/` 是独立子系统，有自己的 controller/entity/mapper/service：
-- 外部 AI API 调用（通过 `ai.api.*` 配置）
-- 安全检测（`safety` 包）
-- 推理逻辑（`inference` 包）
-- 最大 token: 700，温度: 0.4（演示场景优化）
+Article edit supports AI fill: paste a URL to auto-fetch title/content via Jsoup.
 
-## 开发流程约定
-
-- 后端修改后运行 `mvn compile` + `mvn test` 验证
-- 前端修改后需在微信开发者工具中刷新预览
-- 数据库变更需在 `sql/` 目录创建增量脚本
+**IDEA Lombok**: Enable annotation processing in Settings → Build → Compiler → Annotation Processors.

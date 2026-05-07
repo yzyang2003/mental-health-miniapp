@@ -12,17 +12,17 @@ public class MusicVO {
 
     private Long id;
 
-    private String songName;
+    private String name;
 
-    private String singer;
+    private String description;
 
-    private String cover;
+    private String coverImage;
+
+    private String shareUrl;
 
     private String emotionType;
 
-    private String url;
-
-    private Integer duration;
+    private String durationText;
 
     private Integer playCount;
 

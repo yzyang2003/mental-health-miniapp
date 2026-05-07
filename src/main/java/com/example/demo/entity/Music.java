@@ -12,29 +12,29 @@ import java.time.LocalDateTime;
  * 音乐疗愈实体。
  */
 @Data
-@TableName("music")
+@TableName("music_playlist")
 public class Music {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @TableField("song_name")
-    private String songName;
+    @TableField("name")
+    private String name;
 
-    @TableField("singer")
-    private String singer;
+    @TableField("description")
+    private String description;
 
-    @TableField("cover")
-    private String cover;
+    @TableField("cover_image")
+    private String coverImage;
+
+    @TableField("share_url")
+    private String shareUrl;
 
     @TableField("emotion_type")
     private String emotionType;
 
-    @TableField("url")
-    private String url;
-
-    @TableField("duration")
-    private Integer duration;
+    @TableField("duration_text")
+    private String durationText;
 
     @TableField("play_count")
     private Integer playCount;

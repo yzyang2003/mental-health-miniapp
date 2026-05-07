@@ -39,6 +39,9 @@ public class User {
     @TableField("gender")
     private Integer gender;
 
+    @TableField("role")
+    private String role;
+
     @TableField("language")
     private String language;
 

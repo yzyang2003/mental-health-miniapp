@@ -1,48 +1,85 @@
-# AGENTS.md — AI 咨询模块
+# AGENTS.md — AI Consult Module
 
-**Generated:** 2026-05-05
-**Module:** 独立子系统，有自己的 controller/entity/mapper/service
+**Self-contained sub-system** with its own entity/mapper/service. Does NOT share data layer with the main app.
 
-## OVERVIEW
-AI 咨询模块 — 外部 AI API 调用 + 安全检测 + 推理逻辑。独立的 entity/mapper/service 层，不与主程序混用。
+## Structure
 
-## STRUCTURE
 ```
 module/consult/
-├── controller/      # 咨询专用控制器
-├── client/          # AI API 客户端
-├── inference/       # 推理逻辑
-├── safety/          # 安全检测（内容审核）
-├── dto/             # 咨询专用 DTO
-├── entity/          # 咨询专用实体
-├── mapper/          # 咨询专用 Mapper
-└── service/         # 咨询专用 Service
-    ├── QuizScoringService.java
-    ├── Scl90ReportService.java
-    └── QuizAiGuidanceService.java
+├── controller/        # ConsultChatController (chat, reset, voice, tts, stt)
+│                      # ConsultQuizController (quiz submit, result, list)
+├── client/            # OpenAiCompletionClient (external AI API)
+├── inference/         # OpenAiInferenceService
+├── safety/            # ContentSafetyService (interface), DefaultContentSafetyService (keyword-based)
+│                      # CrisisEventLogService, EnhancedContentSafetyService, SafetyResult (enum)
+├── emotion/           # EmotionRecognitionService (7 emotions), CrisisLevelAssessmentService (4 levels)
+│                      # EmotionResult (primary emotion, intensity, list)
+├── skills/            # Counseling skills (injected as Spring beans)
+│   ├── BasicCounselingSkills.java         # Empathy responses, crisis responses
+│   ├── ProfessionalCounselingSkills.java  # CBT, person-centered therapy
+│   ├── CampusScenarioSkills.java          # Academic, interpersonal, emotional, career
+│   ├── CrisisInterventionService.java     # 4-level crisis response with hotlines
+│   ├── QuizRecommendationService.java     # Emotion → quiz mapping (DB IDs: 3,4,7,8,9)
+│   ├── TherapyRecommendationService.java  # Emotion → self-healing mapping (DB IDs: 1-5)
+│   └── ResourceSkills.java               # Campus/external/crisis resources
+├── dto/               # ChatRequest, ChatResponse, ChatHistoryVO, Quiz DTOs
+├── entity/            # ChatHistory, Questionnaire, Question, QuizResult
+├── mapper/            # MyBatis-Plus mappers (BaseMapper<T>)
+└── service/           # AIChatService (interface), AIChatServiceImpl (core orchestrator)
+                       # VoiceService (MiMo ASR/TTS), RateLimitService, QuizService
 ```
 
-## WHERE TO LOOK
-| Task | Location | Notes |
-|------|----------|-------|
-| AI 调用逻辑 | `inference/OpenAiInferenceService.java` | 外部 API，超时 30s |
-| 内容审核 | `safety/ContentSafetyService.java` | 集成 AI 内容审核 |
-| 量表评分 | `service/QuizScoringService.java` | 提取的评分逻辑 |
-| SCL-90 报告 | `service/Scl90ReportService.java` | SCL-90 因子配置从 DB 读取 |
-| 速率限制 | `service/RateLimitService.java` | 10 req/min/用户 |
+## Key Files
 
-## CONVENTIONS
-- 所有 Service 实现在 `service/impl/` 子目录
-- DTO 按功能分包（quiz/, chat/）
-- Mapper 使用 MyBatis-Plus，继承 BaseMapper
-- 安全审核失败 → 返回规则建议（不调 AI）
+| Task | File | Notes |
+|------|------|-------|
+| Chat orchestration | `service/impl/AIChatServiceImpl.java` | Core: safety → emotion → crisis → AI → response |
+| AI API call | `client/OpenAiCompletionClient.java` | External API, 30s read timeout |
+| Content safety | `safety/DefaultContentSafetyService.java` | 12 crisis keywords, 6 unsafe keywords |
+| Emotion detection | `emotion/EmotionRecognitionService.java` | 7 emotion types |
+| Crisis assessment | `emotion/CrisisLevelAssessmentService.java` | 4-level (LOW/MODERATE/HIGH/CRISIS) |
+| Quiz recommendation | `skills/QuizRecommendationService.java` | Maps emotions to existing DB quizzes |
+| Therapy recommendation | `skills/TherapyRecommendationService.java` | Maps emotions to self-healing exercises |
+| Voice ASR/TTS | `service/VoiceService.java` | MiMo API integration, requires `mimo.api.key` |
+| Rate limiting | `service/RateLimitService.java` | 10 req/min/user |
+| System prompt | `AIChatServiceImpl.SYSTEM_PROMPT` | Unicode-escaped Chinese (校园心理陪伴角色) |
 
-## ANTI-PATTERNS (THIS MODULE)
-- 禁止在 controller 直接调用外部 AI API（必须经过 service）
-- 禁止在 service 内硬编码 SCL-90 因子（必须从 DB 读取）
-- 禁止 `as any` / `@ts-ignore` 式 Java 忽略（用 Optional / 空检查）
+## API Endpoints
 
-## NOTES
-- 最大 token: 700，温度: 0.4（演示场景优化）
-- 超时重试: 1次，指数退避
-- 速率限制: 10 req/min/用户（通过 RateLimitService）
+```
+POST /api/consult/chat/send      → sendMessage (text chat)
+POST /api/consult/chat/reset     → resetChatHistory (clear DB history)
+GET  /api/consult/chat/history   → getChatHistory (paginated)
+POST /api/consult/chat/stt       → speechToText (MiMo ASR)
+POST /api/consult/chat/tts       → textToSpeech (MiMo TTS, returns file path)
+POST /api/consult/chat/voice     → processVoiceMessage (ASR + AI reply)
+POST /api/consult/quiz/submit    → submitQuiz (quiz scoring + result)
+GET  /api/consult/quiz/result    → getQuizResult
+GET  /api/consult/quiz/list      → listQuestionnaires
+```
+
+## Anti-Patterns
+
+- ❌ Do NOT call external AI API directly from controller — must go through `AIChatService`
+- ❌ Do NOT hardcode SCL-90 factor configs — must read from DB via `Scl90ReportService`
+- ❌ Do NOT add `@Primary` to services unless intentionally overriding default bean (risk: `BeanDefinitionOverrideException`)
+
+## AI Config
+
+```yaml
+ai.api.url:     # OpenAI-compatible endpoint
+ai.api.key:     # API key
+ai.api.model:   # Model name
+ai.api.max-tokens: 700
+ai.api.temperature: 0.4
+ai.api.connect-timeout: 5000
+ai.api.read-timeout: 30000
+ai.api.max-retry: 1
+```
+
+## Notes
+
+- `ChatResponse` is simple: `{ reply: string, timestamp: datetime }` — no recommendation data in committed code
+- `AIChatServiceImpl` uses in-memory state for some tracking (resets on server restart)
+- All mappers extend `BaseMapper<T>` (MyBatis-Plus)
+- Lombok everywhere: `@Data`, `@RequiredArgsConstructor`, `@Slf4j`
